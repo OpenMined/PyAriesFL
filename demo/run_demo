@@ -35,6 +35,14 @@ elif [ "$AGENT" = "hospital3" ]; then
 	AGENT_MODULE="hospital3"
 	AGENT_PORT=8110
 	AGENT_PORT_RANGE=8110-8118
+elif [ "$AGENT" = "coordinator_server" ]; then
+	AGENT_MODULE="coordinator_server"
+	AGENT_PORT=8130
+	AGENT_PORT_RANGE=8130-8140
+elif [ "$AGENT" = "hospital1_web" ]; then
+	AGENT_MODULE="hospital1_web"
+	AGENT_PORT=8160
+	AGENT_PORT_RANGE=8160-8170
 else
 	echo "Please specify which agent you want to run. Choose from 'coordinator', 'hospital1', 'hospital2', 'hospital3', 'nhsheadoffice' or 'regulator'."
 	exit 1

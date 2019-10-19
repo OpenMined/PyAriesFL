@@ -7,6 +7,8 @@ import os
 import sys
 from urllib.parse import urlparse
 from uuid import uuid4
+from quart import Quart
+from quart import request
 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa
@@ -235,7 +237,93 @@ async def input_invitation(agent):
         await agent.detect_connection()
 
 
-async def main(start_port: int, show_timing: bool = False):
+def create_app(test_config=None):
+    # create and configure the app
+    import argparse
+
+    app = Quart(__name__)
+
+
+    parser = argparse.ArgumentParser(description="Runs an Hospital 1 demo agent.")
+    parser.add_argument(
+        "-p",
+        "--port",
+        type=int,
+        default=8050,
+        metavar=("<port>"),
+        help="Choose the starting port number to listen on",
+    )
+    parser.add_argument(
+        "--timing", action="store_true", help="Enable timing information"
+    )
+    args = parser.parse_args()
+
+    require_indy()
+    agent = None
+
+    try:
+        agent = asyncio.get_event_loop().run_until_complete(create_agent(args.port, args.timing))
+    except KeyboardInterrupt:
+        os._exit(1)
+
+    log_msg("Agent created", agent.regulator_did)
+
+    if test_config is None:
+        # load the instance config, if it exists, when not testing
+        app.config.from_pyfile('config.py', silent=True)
+    else:
+        # load the test config if passed in
+        app.config.from_mapping(test_config)
+
+    # a simple page that says hello
+    @app.route('/hello')
+    def hello():
+        return 'Hello, World!'
+
+    # a simple page that says hello
+    @app.route('/connect', methods=['POST'])
+    async def connect():
+        data = await request.get_data()
+        try:
+            invitation = json.loads(data)
+            log_msg(invitation)
+            connection = await agent.admin_POST("/connections/receive-invitation", invitation)
+            agent.connection_id = connection["connection_id"]
+            log_json(connection, label="Invitation response:")
+        except json.JSONDecodeError as e:
+            log_msg("Invalid invitation:", str(e))
+
+        return 'Hello, World!'
+
+    # @app.route('/connect')
+    # async def connect():
+    #     # Generate an invitation
+    #     log_status(
+    #         "#5 Create a connection to alice and print out the invite details"
+    #     )
+    #     connection = await agent.admin_POST("/connections/create-invitation")
+    #
+    #     agent.active_connection_id = connection["connection_id"]
+    #     agent.connection_list.append(connection["connection_id"])
+    #     log_msg("all connections :", agent.connection_list)
+    #     log_json(connection, label="Invitation response:")
+    #     log_msg("*****************")
+    #     log_msg(json.dumps(connection["invitation"]), label="Invitation:", color=None)
+    #     log_msg("*****************")
+    #     agent._connection_ready = asyncio.Future()
+    #
+    #     return json.dumps(connection["invitation"])
+    #
+    # @app.route('/trustedconnections')
+    # def connections():
+    #     # Generate an invitation
+    #     log_msg(agent.connection_list)
+    #     return json.dumps(agent.trusted_connection_ids)
+
+    return app
+
+
+async def create_agent(start_port: int, show_timing: bool = False):
 
     genesis = await default_genesis_txns()
     if not genesis:
@@ -256,90 +344,68 @@ async def main(start_port: int, show_timing: bool = False):
         log_msg("Admin url is at:", agent.admin_url)
         log_msg("Endpoint url is at:", agent.endpoint)
 
-        log_status("#9 Input the invitation details")
-        await input_invitation(agent)
+        # log_status("#9 Input the invitation details")
+        # await input_invitation(agent)
+        return agent
 
-        async for option in prompt_loop(
-            "(3) Send Message (4) Input New Invitation (5) Send Proof Request to the Issuer (X) Exit? [3/4/5/X]: "
-        ):
-            if option is None or option in "xX":
-                break
-            elif option == "3":
-                msg = await prompt("Enter message: ")
-                if msg:
-                    await agent.admin_POST(
-                        f"/connections/{agent.connection_id}/send-message",
-                        {"content": msg},
-                    )
-            elif option == "4":
-                # handle new invitation
-                log_status("Input new invitation details")
-                await input_invitation(agent)
-            elif option == "5":
-                log_status("#20 Request proof of Research Certification")
-                req_attrs = [
-                    {"name": "date", "restrictions": [{"issuer_did": agent.regulator_did}]},
-                    {"name": "institution", "restrictions": [{"issuer_did": agent.regulator_did}]},
-                ]
-                indy_proof_request = {
-                    "name": "Proof of Verified Research Institution",
-                    "version": "1.0",
-                    "nonce": str(uuid4().int),
-                    "requested_attributes": {
-                        f"0_{req_attr['name']}_uuid": req_attr for req_attr in req_attrs
-                    },
-                    "requested_predicates": {
-                    },
-                }
-                print("Asking for this proof: ", indy_proof_request)
-                proof_request_web_request = {
-                    "connection_id": agent.connection_id,
-                    "proof_request": indy_proof_request,
-                }
-                await agent.admin_POST(
-                    "/present-proof/send-request", proof_request_web_request
-                )
-        if show_timing:
-            timing = await agent.fetch_timing()
-            if timing:
-                for line in agent.format_timing(timing):
-                    log_msg(line)
+        # async for option in prompt_loop(
+        #     "(3) Send Message (4) Input New Invitation (5) Send Proof Request to the Issuer (X) Exit? [3/4/5/X]: "
+        # ):
+        #     if option is None or option in "xX":
+        #         break
+        #     elif option == "3":
+        #         msg = await prompt("Enter message: ")
+        #         if msg:
+        #             await agent.admin_POST(
+        #                 f"/connections/{agent.connection_id}/send-message",
+        #                 {"content": msg},
+        #             )
+        #     elif option == "4":
+        #         # handle new invitation
+        #         log_status("Input new invitation details")
+        #         await input_invitation(agent)
+        #     elif option == "5":
+        #         log_status("#20 Request proof of Research Certification")
+        #         req_attrs = [
+        #             {"name": "date", "restrictions": [{"issuer_did": agent.regulator_did}]},
+        #             {"name": "institution", "restrictions": [{"issuer_did": agent.regulator_did}]},
+        #         ]
+        #         # req_preds = [
+        #         #     {
+        #         #         "name": "age",
+        #         #         "p_type": ">=",
+        #         #         "p_value": 18,
+        #         #         "restrictions": [{"issuer_did": agent.did}],
+        #         #     }
+        #         # ]
+        #         indy_proof_request = {
+        #             "name": "Proof of Verified Research Institution",
+        #             "version": "1.0",
+        #             "nonce": str(uuid4().int),
+        #             "requested_attributes": {
+        #                 f"0_{req_attr['name']}_uuid": req_attr for req_attr in req_attrs
+        #             },
+        #             "requested_predicates": {
+        #             },
+        #         }
+        #         print("Asking for this proof: ", indy_proof_request)
+        #         proof_request_web_request = {
+        #             "connection_id": agent.connection_id,
+        #             "proof_request": indy_proof_request,
+        #         }
+        #         await agent.admin_POST(
+        #             "/present-proof/send-request", proof_request_web_request
+        #         )
+        # if show_timing:
+        #     timing = await agent.fetch_timing()
+        #     if timing:
+        #         for line in agent.format_timing(timing):
+        #             log_msg(line)
 
-    finally:
-        terminated = True
-        try:
-            if agent:
-                await agent.terminate()
-        except Exception:
-            LOGGER.exception("Error terminating agent:")
-            terminated = False
-
-    await asyncio.sleep(0.1)
-
-    if not terminated:
-        os._exit(1)
-
+    except Exception:
+        LOGGER.exception("Error terminating agent:")
 
 if __name__ == "__main__":
-    import argparse
 
-    parser = argparse.ArgumentParser(description="Runs an Hospital 1 demo agent.")
-    parser.add_argument(
-        "-p",
-        "--port",
-        type=int,
-        default=8050,
-        metavar=("<port>"),
-        help="Choose the starting port number to listen on",
-    )
-    parser.add_argument(
-        "--timing", action="store_true", help="Enable timing information"
-    )
-    args = parser.parse_args()
-
-    require_indy()
-
-    try:
-        asyncio.get_event_loop().run_until_complete(main(args.port, args.timing))
-    except KeyboardInterrupt:
-        os._exit(1)
+    app = create_app()
+    app.run(host='0.0.0.0', port='8170')

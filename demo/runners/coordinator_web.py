@@ -1,12 +1,13 @@
 import asyncio
-import base64
-import binascii
 import json
 import logging
 import os
+import random
 import sys
+import base64
+import binascii
 from urllib.parse import urlparse
-
+from uuid import uuid4
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa
 
 from runners.support.agent import DemoAgent, default_genesis_txns
@@ -20,28 +21,33 @@ from runners.support.utils import (
     require_indy,
 )
 
+CRED_PREVIEW_TYPE = (
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/credential-preview"
+)
 
 LOGGER = logging.getLogger(__name__)
 
 
-class AliceAgent(DemoAgent):
+class CoordinatorAgent(DemoAgent):
     def __init__(self, http_port: int, admin_port: int, **kwargs):
         super().__init__(
-            "Bob Agent",
+            "Coordinator Agent",
             http_port,
             admin_port,
-            prefix="Bob",
-            extra_args=[
-                "--auto-accept-invites",
-                "--auto-accept-requests",
-                "--auto-store-credential",
-            ],
             seed=None,
+            prefix="Coordinator",
+            extra_args=["--auto-accept-invites", "--auto-accept-requests", "--auto-store-credential"],
             **kwargs,
         )
-        self.connection_id = None
+        self.nhsheadoffice_did = "DukExq9foGb5DjDoRXx8G8"
+        self.active_connection_id = None
+        self.connection_list = []
+        self.trusted_connection_ids = []
         self._connection_ready = asyncio.Future()
         self.cred_state = {}
+        # TODO define a dict to hold credential attributes
+        # based on credential_definition_id
+        self.cred_attrs = {}
 
     async def detect_connection(self):
         await self._connection_ready
@@ -51,12 +57,33 @@ class AliceAgent(DemoAgent):
         return self._connection_ready.done() and self._connection_ready.result()
 
     async def handle_connections(self, message):
-        self.log("Handle connection")
-        self.log(message)
-        if message["connection_id"] == self.connection_id:
+        # self.log("Handle connections", message, self.connections_list)
+        if message["connection_id"] == self.active_connection_id:
             if message["state"] == "active" and not self._connection_ready.done():
                 self.log("Connected")
                 self._connection_ready.set_result(True)
+                log_status("#20 Request proof of degree from alice")
+                req_attrs = [
+                    {"name": "date", "restrictions": [{"issuer_did": self.nhsheadoffice_did}]},
+                ]
+                indy_proof_request = {
+                    "name": "Proof of Verified Hospital",
+                    "version": "1.0",
+                    "nonce": str(uuid4().int),
+                    "requested_attributes": {
+                        f"0_{req_attr['name']}_uuid": req_attr for req_attr in req_attrs
+                    },
+                    "requested_predicates": {
+                    },
+                }
+                print("Asking for this proof: ", indy_proof_request)
+                proof_request_web_request = {
+                    "connection_id": self.active_connection_id,
+                    "proof_request": indy_proof_request,
+                }
+                await self.admin_POST(
+                    "/present-proof/send-request", proof_request_web_request
+                )
 
     async def handle_issue_credential(self, message):
         state = message["state"]
@@ -72,6 +99,24 @@ class AliceAgent(DemoAgent):
             ", credential_exchange_id =",
             credential_exchange_id,
         )
+
+        if state == "request_received":
+            log_status("#17 Issue credential to X")
+            # issue credentials based on the credential_definition_id
+            cred_attrs = self.cred_attrs[message["credential_definition_id"]]
+            cred_preview = {
+                "@type": CRED_PREVIEW_TYPE,
+                "attributes": [
+                    {"name": n, "value": v} for (n, v) in cred_attrs.items()
+                ],
+            }
+            await self.admin_POST(
+                f"/issue-credential/records/{credential_exchange_id}/issue",
+                {
+                    "comment": f"Issuing credential, exchange {credential_exchange_id}",
+                    "credential_preview": cred_preview,
+                },
+            )
 
         if state == "offer_received":
             log_status("#15 After receiving credential offer, send credential request")
@@ -94,19 +139,31 @@ class AliceAgent(DemoAgent):
             self.log("credential_definition_id", message["credential_definition_id"])
             self.log("schema_id", message["schema_id"])
 
+
     async def handle_present_proof(self, message):
         state = message["state"]
-        presentation_exchange_id = message["presentation_exchange_id"]
         presentation_request = message["presentation_request"]
+        presentation_exchange_id = message["presentation_exchange_id"]
 
-        log_msg(
+        self.log(
             "Presentation: state =",
             state,
             ", presentation_exchange_id =",
             presentation_exchange_id,
         )
 
-        if state == "request_received":
+        if state == "presentation_received":
+            log_status("#27 Process the proof provided by X")
+            log_status("#28 Check if proof is valid")
+            proof = await self.admin_POST(
+                f"/present-proof/records/{presentation_exchange_id}/"
+                "verify-presentation"
+            )
+            self.log("Proof =", proof["verified"])
+            if proof["verified"]:
+                self.log("Connection Trusted : ", message)
+                self.trusted_connection_ids.append(message["connection_id"])
+        elif state == "request_received":
             log_status(
                 "#24 Query for credentials in the wallet that satisfy the proof request"
             )
@@ -116,11 +173,13 @@ class AliceAgent(DemoAgent):
             revealed = {}
             self_attested = {}
             predicates = {}
-
+            log_msg("Get Credentials to Satisfy proof")
             # select credentials to provide for the proof
             credentials = await self.admin_GET(
                 f"/present-proof/records/{presentation_exchange_id}/credentials"
             )
+            self.log("Got cred", credentials)
+
             if credentials:
                 for row in credentials:
                     for referent in row["presentation_referents"]:
@@ -153,7 +212,7 @@ class AliceAgent(DemoAgent):
                 "requested_attributes": revealed,
                 "self_attested_attributes": self_attested,
             }
-
+            log_status(request)
             log_status("#26 Send the proof to X")
             await self.admin_POST(
                 (
@@ -165,6 +224,29 @@ class AliceAgent(DemoAgent):
 
     async def handle_basicmessages(self, message):
         self.log("Received message:", message["content"])
+        self.log(message)
+
+
+async def generate_new_connection(agent):
+    # handle new invitation
+    with log_timer("Generate invitation duration:"):
+        # Generate an invitation
+        log_status(
+            "#5 Create a connection to alice and print out the invite details"
+        )
+        connection = await agent.admin_POST("/connections/create-invitation")
+
+    agent.active_connection_id = connection["connection_id"]
+    agent.connection_list.append(connection["connection_id"])
+    log_msg("all connections :", agent.connection_list)
+    log_json(connection, label="Invitation response:")
+    log_msg("*****************")
+    log_msg(json.dumps(connection["invitation"]), label="Invitation:", color=None)
+    log_msg("*****************")
+
+    log_msg("Waiting for connection...")
+    await agent.detect_connection()
+
 
 
 async def input_invitation(agent):
@@ -181,8 +263,6 @@ async def input_invitation(agent):
         except ValueError:
             b64_invite = details
 
-        agent.log("Invite", b64_invite)
-
         if b64_invite:
             try:
                 invite_json = base64.urlsafe_b64decode(b64_invite)
@@ -192,8 +272,6 @@ async def input_invitation(agent):
             except UnicodeDecodeError:
                 pass
 
-        agent.log("Invite", details)
-
         if details:
             try:
                 json.loads(details)
@@ -202,97 +280,10 @@ async def input_invitation(agent):
                 log_msg("Invalid invitation:", str(e))
 
     with log_timer("Connect duration:"):
-        log_msg("Before recieved")
         connection = await agent.admin_POST("/connections/receive-invitation", details)
-        log_msg("After recieved")
-        agent.connection_id = connection["connection_id"]
+        agent.active_connection_id = connection["connection_id"]
         log_json(connection, label="Invitation response:")
+        agent._connection_ready = asyncio.Future()
 
         await agent.detect_connection()
 
-
-async def main(start_port: int, show_timing: bool = False):
-
-    genesis = await default_genesis_txns()
-    if not genesis:
-        print("Error retrieving ledger genesis transactions")
-        sys.exit(1)
-
-    agent = None
-
-    try:
-        log_status("#7 Provision an agent and wallet, get back configuration details")
-        agent = AliceAgent(
-            start_port, start_port + 1, genesis_data=genesis, timing=show_timing
-        )
-        await agent.listen_webhooks(start_port + 2)
-
-        with log_timer("Startup duration:"):
-            await agent.start_process()
-        log_msg("Admin url is at:", agent.admin_url)
-        log_msg("Endpoint url is at:", agent.endpoint)
-
-        log_status("#9 Input faber.py invitation details")
-        await input_invitation(agent)
-
-        async for option in prompt_loop(
-            "(3) Send Message (4) Input New Invitation (X) Exit? [3/4/X]: "
-        ):
-            if option is None or option in "xX":
-                break
-            elif option == "3":
-                msg = await prompt("Enter message: ")
-                if msg:
-                    await agent.admin_POST(
-                        f"/connections/{agent.connection_id}/send-message",
-                        {"content": msg},
-                    )
-            elif option == "4":
-                # handle new invitation
-                log_status("Input new invitation details")
-                await input_invitation(agent)
-
-        if show_timing:
-            timing = await agent.fetch_timing()
-            if timing:
-                for line in agent.format_timing(timing):
-                    log_msg(line)
-
-    finally:
-        terminated = True
-        try:
-            if agent:
-                await agent.terminate()
-        except Exception:
-            LOGGER.exception("Error terminating agent:")
-            terminated = False
-
-    await asyncio.sleep(0.1)
-
-    if not terminated:
-        os._exit(1)
-
-
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Runs an Alice demo agent.")
-    parser.add_argument(
-        "-p",
-        "--port",
-        type=int,
-        default=8030,
-        metavar=("<port>"),
-        help="Choose the starting port number to listen on",
-    )
-    parser.add_argument(
-        "--timing", action="store_true", help="Enable timing information"
-    )
-    args = parser.parse_args()
-
-    require_indy()
-
-    try:
-        asyncio.get_event_loop().run_until_complete(main(args.port, args.timing))
-    except KeyboardInterrupt:
-        os._exit(1)

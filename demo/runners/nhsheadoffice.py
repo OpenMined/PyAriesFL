@@ -31,14 +31,15 @@ LOGGER = logging.getLogger(__name__)
 class NhsheadofficeAgent(DemoAgent):
     def __init__(self, http_port: int, admin_port: int, **kwargs):
         super().__init__(
-            "NHS Head Office",
+            "NHS Trust",
             http_port,
             admin_port,
             seed="m88EdTmOnwVgDr08qK1zDLI0IzOyQuE5",
-            prefix="Nhsheadoffice",
+            prefix="Nhs Trust",
             extra_args=["--auto-accept-invites", "--auto-accept-requests"],
             **kwargs,
         )
+        self.current_hospital_name = None
         self.active_connection_id = None
         self.connection_list = []
         self._connection_ready = asyncio.Future()
@@ -93,25 +94,33 @@ class NhsheadofficeAgent(DemoAgent):
                 },
             )
 
-    # async def handle_present_proof(self, message):
-    #     state = message["state"]
-    #
-    #     presentation_exchange_id = message["presentation_exchange_id"]
-    #     self.log(
-    #         "Presentation: state =",
-    #         state,
-    #         ", presentation_exchange_id =",
-    #         presentation_exchange_id,
-    #     )
-    #
-    #     if state == "presentation_received":
-    #         log_status("#27 Process the proof provided by X")
-    #         log_status("#28 Check if proof is valid")
-    #         proof = await self.admin_POST(
-    #             f"/present-proof/records/{presentation_exchange_id}/"
-    #             "verify-presentation"
-    #         )
-    #         self.log("Proof =", proof["verified"])
+    async def handle_present_proof(self, message):
+        state = message["state"]
+        presentation_request = message["presentation_request"]
+        presentation_exchange_id = message["presentation_exchange_id"]
+        self.log(
+            "Presentation: state =",
+            state,
+            ", presentation_exchange_id =",
+            presentation_exchange_id,
+        )
+
+        if state == "presentation_received":
+            log_status("#27 Process the proof provided by X")
+            log_status("#28 Check if proof is valid")
+            proof = await self.admin_POST(
+                f"/present-proof/records/{presentation_exchange_id}/"
+                "verify-presentation"
+            )
+            self.log("Proof =", proof["verified"])
+            if proof["verified"]:
+                # self.log(presentation_request["requested_attributes"])
+                self.log(proof)
+
+                # self.log(proof["presentation"]["proof"]["requested_proof"])
+                self.log(proof["presentation"]["requested_proof"]["self_attested_attrs"]["0_name_uuid"])
+
+                self.current_hospital_name = proof["presentation"]["requested_proof"]["self_attested_attrs"]["0_name_uuid"]
     #
     # async def handle_basicmessages(self, message):
     #     self.log("Received message:", message["content"])
@@ -179,12 +188,36 @@ async def main(start_port: int, show_timing: bool = False):
         await agent.detect_connection()
 
         async for option in prompt_loop(
-            "(1) Issue Credential, (2) Create a New Invitation, (X) Exit? [1/2/X] "
+            "(1) Request Hospital name, (2) Issue Verified Hospital Credential, (3) Create a New Invitation, (X) Exit? [1/2/X] "
         ):
             if option is None or option in "xX":
                 break
 
             elif option == "1":
+                log_status("#20 Request Self Attested Hospital Name")
+                req_attrs = [
+                    {"name": "name"}
+                ]
+                indy_proof_request = {
+                    "name": "Proof of Hospital Name",
+                    "version": "1.0",
+                    "nonce": str(uuid4().int),
+                    "requested_attributes": {
+                        f"0_{req_attr['name']}_uuid": req_attr for req_attr in req_attrs
+                    },
+                    "requested_predicates": {
+                    },
+                }
+                proof_request_web_request = {
+                    "connection_id": agent.active_connection_id,
+                    "proof_request": indy_proof_request,
+                }
+                await agent.admin_POST(
+                    "/present-proof/send-request", proof_request_web_request
+                )
+
+
+            elif option == "2":
                 log_status("#13 Issue credential offer to X")
 
                 today = date.today()
@@ -211,50 +244,12 @@ async def main(start_port: int, show_timing: bool = False):
                 }
                 await agent.admin_POST("/issue-credential/send-offer", offer_request)
 
-                # TODO issue an additional credential for Student ID
-
-            # elif option == "2":
-            #     log_status("#20 Request proof of degree from Hospital 1")
-            #     req_attrs = [
-            #         {"name": "name", "restrictions": [{"issuer_did": agent.did}]},
-            #         {"name": "date", "restrictions": [{"issuer_did": agent.did}]},
-            #         {"name": "degree", "restrictions": [{"issuer_did": agent.did}]},
-            #         {"name": "self_attested_thing"},
-            #     ]
-            #     req_preds = [
-            #         {
-            #             "name": "age",
-            #             "p_type": ">=",
-            #             "p_value": 18,
-            #             "restrictions": [{"issuer_did": agent.did}],
-            #         }
-            #     ]
-            #     indy_proof_request = {
-            #         "name": "Proof of Education",
-            #         "version": "1.0",
-            #         "nonce": str(uuid4().int),
-            #         "requested_attributes": {
-            #             f"0_{req_attr['name']}_uuid": req_attr for req_attr in req_attrs
-            #         },
-            #         "requested_predicates": {
-            #             f"0_{req_pred['name']}_GE_uuid": req_pred
-            #             for req_pred in req_preds
-            #         },
-            #     }
-            #     proof_request_web_request = {
-            #         "connection_id": agent.active_connection_id,
-            #         "proof_request": indy_proof_request,
-            #     }
-            #     await agent.admin_POST(
-            #         "/present-proof/send-request", proof_request_web_request
-            #     )
-
             # elif option == "3":
             #     msg = await prompt("Enter message: ")
             #     await agent.admin_POST(
             #         f"/connections/{agent.active_connection_id}/send-message", {"content": msg}
             #     )
-            elif option == "2":
+            elif option == "3":
                 # handle new invitation
                 with log_timer("Generate invitation duration:"):
                     # Generate an invitation

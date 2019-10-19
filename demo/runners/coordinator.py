@@ -8,7 +8,6 @@ import base64
 import binascii
 from urllib.parse import urlparse
 from uuid import uuid4
-
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa
 
 from runners.support.agent import DemoAgent, default_genesis_txns
@@ -228,6 +227,9 @@ async def generate_new_connection(agent):
 
 async def main(start_port: int, show_timing: bool = False):
 
+    flask_app = create_app()
+    flask_app.run()
+
     genesis = await default_genesis_txns()
     if not genesis:
         print("Error retrieving ledger genesis transactions")
@@ -246,26 +248,6 @@ async def main(start_port: int, show_timing: bool = False):
             await agent.start_process()
         log_msg("Admin url is at:", agent.admin_url)
         log_msg("Endpoint url is at:", agent.endpoint)
-
-        # Create a schema
-        # with log_timer("Publish schema/cred def duration:"):
-        #     log_status("#3/4 Create a new schema/cred def on the ledger")
-        #     version = format(
-        #         "%d.%d.%d"
-        #         % (
-        #             random.randint(1, 101),
-        #             random.randint(1, 101),
-        #             random.randint(1, 101),
-        #         )
-        #     )
-        #     (
-        #         _,  # schema id
-        #         credential_definition_id,
-        #     ) = await agent.register_schema_and_creddef(
-        #         "degree schema", version, ["name", "date", "degree", "age"]
-        #     )
-
-        # TODO add an additional credential for Student ID
 
         with log_timer("Generate invitation duration:"):
             # Generate an invitation
@@ -412,7 +394,6 @@ async def input_invitation(agent):
 
 if __name__ == "__main__":
     import argparse
-
     parser = argparse.ArgumentParser(description="Runs a Coordinator demo agent.")
     parser.add_argument(
         "-p",
@@ -433,3 +414,5 @@ if __name__ == "__main__":
         asyncio.get_event_loop().run_until_complete(main(args.port, args.timing))
     except KeyboardInterrupt:
         os._exit(1)
+
+
