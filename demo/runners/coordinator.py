@@ -35,10 +35,12 @@ class CoordinatorAgent(DemoAgent):
             "Coordinator Agent",
             http_port,
             admin_port,
+            seed=None,
             prefix="Coordinator",
             extra_args=["--auto-accept-invites", "--auto-accept-requests"],
             **kwargs,
         )
+        self.nhsheadoffice_did = "DukExq9foGb5DjDoRXx8G8"
         self.active_connection_id = None
         self.connection_list = []
         self._connection_ready = asyncio.Future()
@@ -117,6 +119,7 @@ class CoordinatorAgent(DemoAgent):
 
 
     async def handle_present_proof(self, message):
+        print(message)
         state = message["state"]
 
         presentation_exchange_id = message["presentation_exchange_id"]
@@ -184,22 +187,22 @@ async def main(start_port: int, show_timing: bool = False):
         log_msg("Endpoint url is at:", agent.endpoint)
 
         # Create a schema
-        with log_timer("Publish schema/cred def duration:"):
-            log_status("#3/4 Create a new schema/cred def on the ledger")
-            version = format(
-                "%d.%d.%d"
-                % (
-                    random.randint(1, 101),
-                    random.randint(1, 101),
-                    random.randint(1, 101),
-                )
-            )
-            (
-                _,  # schema id
-                credential_definition_id,
-            ) = await agent.register_schema_and_creddef(
-                "degree schema", version, ["name", "date", "degree", "age"]
-            )
+        # with log_timer("Publish schema/cred def duration:"):
+        #     log_status("#3/4 Create a new schema/cred def on the ledger")
+        #     version = format(
+        #         "%d.%d.%d"
+        #         % (
+        #             random.randint(1, 101),
+        #             random.randint(1, 101),
+        #             random.randint(1, 101),
+        #         )
+        #     )
+        #     (
+        #         _,  # schema id
+        #         credential_definition_id,
+        #     ) = await agent.register_schema_and_creddef(
+        #         "degree schema", version, ["name", "date", "degree", "age"]
+        #     )
 
         # TODO add an additional credential for Student ID
 
@@ -230,30 +233,27 @@ async def main(start_port: int, show_timing: bool = False):
             elif option == "1":
                 log_status("#20 Request proof of degree from alice")
                 req_attrs = [
-                    {"name": "name", "restrictions": [{"issuer_did": agent.did}]},
-                    {"name": "date", "restrictions": [{"issuer_did": agent.did}]},
-                    {"name": "degree", "restrictions": [{"issuer_did": agent.did}]},
-                    {"name": "self_attested_thing"},
+                    {"name": "date", "restrictions": [{"issuer_did": agent.nhsheadoffice_did}]},
                 ]
-                req_preds = [
-                    {
-                        "name": "age",
-                        "p_type": ">=",
-                        "p_value": 18,
-                        "restrictions": [{"issuer_did": agent.did}],
-                    }
-                ]
+                # req_preds = [
+                #     {
+                #         "name": "age",
+                #         "p_type": ">=",
+                #         "p_value": 18,
+                #         "restrictions": [{"issuer_did": agent.did}],
+                #     }
+                # ]
                 indy_proof_request = {
-                    "name": "Proof of Education",
+                    "name": "Proof of Verified Hospital",
                     "version": "1.0",
                     "nonce": str(uuid4().int),
                     "requested_attributes": {
                         f"0_{req_attr['name']}_uuid": req_attr for req_attr in req_attrs
                     },
-                    "requested_predicates": {
-                        f"0_{req_pred['name']}_GE_uuid": req_pred
-                        for req_pred in req_preds
-                    },
+                    # "requested_predicates": {
+                    #     f"0_{req_pred['name']}_GE_uuid": req_pred
+                    #     for req_pred in req_preds
+                    # },
                 }
                 proof_request_web_request = {
                     "connection_id": agent.active_connection_id,
