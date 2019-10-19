@@ -37,7 +37,7 @@ class CoordinatorAgent(DemoAgent):
             admin_port,
             seed=None,
             prefix="Coordinator",
-            extra_args=["--auto-accept-invites", "--auto-accept-requests"],
+            extra_args=["--auto-accept-invites", "--auto-accept-requests", "--auto-store-credential"],
             **kwargs,
         )
         self.nhsheadoffice_did = "DukExq9foGb5DjDoRXx8G8"
@@ -151,11 +151,13 @@ class CoordinatorAgent(DemoAgent):
             revealed = {}
             self_attested = {}
             predicates = {}
-
+            log_msg("Get Credentials to Satisfy proof")
             # select credentials to provide for the proof
             credentials = await self.admin_GET(
                 f"/present-proof/records/{presentation_exchange_id}/credentials"
             )
+            self.log("Got cred", credentials)
+
             if credentials:
                 for row in credentials:
                     for referent in row["presentation_referents"]:
@@ -188,7 +190,7 @@ class CoordinatorAgent(DemoAgent):
                 "requested_attributes": revealed,
                 "self_attested_attributes": self_attested,
             }
-
+            log_status(request)
             log_status("#26 Send the proof to X")
             await self.admin_POST(
                 (

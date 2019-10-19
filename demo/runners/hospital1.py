@@ -117,6 +117,7 @@ class Hospital1Agent(DemoAgent):
         state = message["state"]
         presentation_exchange_id = message["presentation_exchange_id"]
         presentation_request = message["presentation_request"]
+        self.log("Handle present proof", state)
 
         log_msg(
             "Presentation: state =",
@@ -277,7 +278,7 @@ async def main(start_port: int, show_timing: bool = False):
                 log_status("#20 Request proof of Research Certification")
                 req_attrs = [
                     {"name": "date", "restrictions": [{"issuer_did": agent.regulator_did}]},
-                    # {"name": "institution", "restrictions": [{"issuer_did": agent.regulator_did}]},
+                    {"name": "institution", "restrictions": [{"issuer_did": agent.regulator_did}]},
                 ]
                 # req_preds = [
                 #     {
