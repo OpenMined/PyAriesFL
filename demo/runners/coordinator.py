@@ -223,7 +223,7 @@ async def main(start_port: int, show_timing: bool = False):
 
         async for option in prompt_loop(
             "(1) Issue Credential, (2) Send Proof Request, "
-            + "(3) Send Message (4) New Connection (X) Exit? [1/2/3/4/X] "
+            + "(3) Send Message (4) New Connection (5) Inout New Invitation Details (X) Exit? [1/2/3/4/X] "
         ):
             if option is None or option in "xX":
                 break
@@ -317,7 +317,10 @@ async def main(start_port: int, show_timing: bool = False):
 
                 log_msg("Waiting for connection...")
                 await agent.detect_connection()
-
+            elif option == "5":
+                # handle new invitation
+                log_status("Input new invitation details")
+                await input_invitation(agent)
         if show_timing:
             timing = await agent.fetch_timing()
             if timing:
