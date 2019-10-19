@@ -154,7 +154,7 @@ async def main(start_port: int, show_timing: bool = False):
                 _,  # schema id
                 credential_definition_id,
             ) = await agent.register_schema_and_creddef(
-                "Verified Hospital schema", version, ["date"]
+                "Certified Researcher schema", version, ["institution", "date"]
             )
 
         # TODO add an additional credential for Student ID
@@ -190,7 +190,7 @@ async def main(start_port: int, show_timing: bool = False):
                 agent.cred_attrs[credential_definition_id] = {
                     # "name": str(credential_definition_id),
                     "date": str(today),
-                    # "degree": "Health",
+                    "institution": "Edinburgh Napier University",
                     # "age": "24",
                 }
 
@@ -208,50 +208,6 @@ async def main(start_port: int, show_timing: bool = False):
                     "credential_preview": cred_preview,
                 }
                 await agent.admin_POST("/issue-credential/send-offer", offer_request)
-
-                # TODO issue an additional credential for Student ID
-
-            # elif option == "2":
-            #     log_status("#20 Request proof of degree from Hospital 1")
-            #     req_attrs = [
-            #         {"name": "name", "restrictions": [{"issuer_did": agent.did}]},
-            #         {"name": "date", "restrictions": [{"issuer_did": agent.did}]},
-            #         {"name": "degree", "restrictions": [{"issuer_did": agent.did}]},
-            #         {"name": "self_attested_thing"},
-            #     ]
-            #     req_preds = [
-            #         {
-            #             "name": "age",
-            #             "p_type": ">=",
-            #             "p_value": 18,
-            #             "restrictions": [{"issuer_did": agent.did}],
-            #         }
-            #     ]
-            #     indy_proof_request = {
-            #         "name": "Proof of Education",
-            #         "version": "1.0",
-            #         "nonce": str(uuid4().int),
-            #         "requested_attributes": {
-            #             f"0_{req_attr['name']}_uuid": req_attr for req_attr in req_attrs
-            #         },
-            #         "requested_predicates": {
-            #             f"0_{req_pred['name']}_GE_uuid": req_pred
-            #             for req_pred in req_preds
-            #         },
-            #     }
-            #     proof_request_web_request = {
-            #         "connection_id": agent.active_connection_id,
-            #         "proof_request": indy_proof_request,
-            #     }
-            #     await agent.admin_POST(
-            #         "/present-proof/send-request", proof_request_web_request
-            #     )
-
-            # elif option == "3":
-            #     msg = await prompt("Enter message: ")
-            #     await agent.admin_POST(
-            #         f"/connections/{agent.active_connection_id}/send-message", {"content": msg}
-            #     )
             elif option == "2":
                 # handle new invitation
                 with log_timer("Generate invitation duration:"):
