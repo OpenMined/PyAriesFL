@@ -320,7 +320,7 @@ async def main(start_port: int, show_timing: bool = False):
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Runs a Faber demo agent.")
+    parser = argparse.ArgumentParser(description="Runs a Coordinator demo agent.")
     parser.add_argument(
         "-p",
         "--port",
