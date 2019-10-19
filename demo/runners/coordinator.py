@@ -43,6 +43,7 @@ class CoordinatorAgent(DemoAgent):
         self.nhsheadoffice_did = "DukExq9foGb5DjDoRXx8G8"
         self.active_connection_id = None
         self.connection_list = []
+        self.trusted_connection_ids = []
         self._connection_ready = asyncio.Future()
         self.cred_state = {}
         # TODO define a dict to hold credential attributes
@@ -119,7 +120,6 @@ class CoordinatorAgent(DemoAgent):
 
 
     async def handle_present_proof(self, message):
-        print(message)
         state = message["state"]
 
         presentation_exchange_id = message["presentation_exchange_id"]
@@ -138,6 +138,8 @@ class CoordinatorAgent(DemoAgent):
                 "verify-presentation"
             )
             self.log("Proof =", proof["verified"])
+            if proof["verified"]:
+                self.trusted_connection_ids.append(message["connection_id"])
 
     async def handle_basicmessages(self, message):
         self.log("Received message:", message["content"])
