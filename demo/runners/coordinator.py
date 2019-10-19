@@ -218,8 +218,8 @@ async def main(start_port: int, show_timing: bool = False):
         log_msg(json.dumps(connection["invitation"]), label="Invitation:", color=None)
         log_msg("*****************")
 
-        log_msg("Waiting for connection...")
-        await agent.detect_connection()
+        # log_msg("Waiting for connection...")
+        # await agent.detect_connection()
 
         async for option in prompt_loop(
             "(1) Issue Credential, (2) Send Proof Request, "
