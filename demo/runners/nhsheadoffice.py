@@ -6,6 +6,7 @@ import random
 import sys
 
 from uuid import uuid4
+from datetime import date
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa
 
@@ -27,17 +28,18 @@ CRED_PREVIEW_TYPE = (
 LOGGER = logging.getLogger(__name__)
 
 
-class FaberAgent(DemoAgent):
+class NhsheadofficeAgent(DemoAgent):
     def __init__(self, http_port: int, admin_port: int, **kwargs):
         super().__init__(
-            "Faber Agent",
+            "NHS Head Office",
             http_port,
             admin_port,
-            prefix="Faber",
+            prefix="Nhsheadoffice",
             extra_args=["--auto-accept-invites", "--auto-accept-requests"],
             **kwargs,
         )
         self.connection_id = None
+        self.connection_list = []
         self._connection_ready = asyncio.Future()
         self.cred_state = {}
         # TODO define a dict to hold credential attributes
@@ -125,7 +127,7 @@ async def main(start_port: int, show_timing: bool = False):
 
     try:
         log_status("#1 Provision an agent and wallet, get back configuration details")
-        agent = FaberAgent(
+        agent = NhsheadofficeAgent(
             start_port, start_port + 1, genesis_data=genesis, timing=show_timing
         )
         await agent.listen_webhooks(start_port + 2)
@@ -159,11 +161,12 @@ async def main(start_port: int, show_timing: bool = False):
         with log_timer("Generate invitation duration:"):
             # Generate an invitation
             log_status(
-                "#5 Create a connection to alice and print out the invite details"
+                "#5 Create a connection to Hospital and print out the invite details"
             )
             connection = await agent.admin_POST("/connections/create-invitation")
 
         agent.connection_id = connection["connection_id"]
+        agent.connection_list.append(connection["connection_id"])
         log_json(connection, label="Invitation response:")
         log_msg("*****************")
         log_msg(json.dumps(connection["invitation"]), label="Invitation:", color=None)
@@ -174,7 +177,7 @@ async def main(start_port: int, show_timing: bool = False):
 
         async for option in prompt_loop(
             "(1) Issue Credential, (2) Send Proof Request, "
-            + "(3) Send Message (X) Exit? [1/2/3/X] "
+            + "(3) Send Message, (4) Create a New Invitation, (X) Exit? [1/2/3/X] "
         ):
             if option is None or option in "xX":
                 break
@@ -182,11 +185,12 @@ async def main(start_port: int, show_timing: bool = False):
             elif option == "1":
                 log_status("#13 Issue credential offer to X")
 
+                today = date.today()
                 # TODO define attributes to send for credential
                 agent.cred_attrs[credential_definition_id] = {
-                    "name": "Alice Smith",
-                    "date": "2018-05-28",
-                    "degree": "Maths",
+                    "name": str(credential_definition_id),
+                    "date": str(today),
+                    "degree": "Health",
                     "age": "24",
                 }
 
@@ -208,7 +212,7 @@ async def main(start_port: int, show_timing: bool = False):
                 # TODO issue an additional credential for Student ID
 
             elif option == "2":
-                log_status("#20 Request proof of degree from alice")
+                log_status("#20 Request proof of degree from Hospital 1")
                 req_attrs = [
                     {"name": "name", "restrictions": [{"issuer_did": agent.did}]},
                     {"name": "date", "restrictions": [{"issuer_did": agent.did}]},
@@ -248,6 +252,25 @@ async def main(start_port: int, show_timing: bool = False):
                 await agent.admin_POST(
                     f"/connections/{agent.connection_id}/send-message", {"content": msg}
                 )
+            elif option == "4":
+                # handle new invitation
+                with log_timer("Generate invitation duration:"):
+                    # Generate an invitation
+                    log_status(
+                        "#5 Create a connection to alice and print out the invite details"
+                    )
+                    connection = await agent.admin_POST("/connections/create-invitation")
+                #agent.active_connection_id = connection["connection_id"]
+                agent.connection_id = connection["connection_id"]
+                agent.connection_list.append(connection["connection_id"])
+                log_msg("all connections :", agent.connection_list)
+                log_json(connection, label="Invitation response:")
+                log_msg("*****************")
+                log_msg(json.dumps(connection["invitation"]), label="Invitation:", color=None)
+                log_msg("*****************")
+                agent._connection_ready = asyncio.Future()
+                log_msg("Waiting for connection...")
+                await agent.detect_connection()
 
         if show_timing:
             timing = await agent.fetch_timing()
@@ -273,12 +296,12 @@ async def main(start_port: int, show_timing: bool = False):
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Runs a Faber demo agent.")
+    parser = argparse.ArgumentParser(description="Runs a NHS Head Office demo agent.")
     parser.add_argument(
         "-p",
         "--port",
         type=int,
-        default=8020,
+        default=8060,
         metavar=("<port>"),
         help="Choose the starting port number to listen on",
     )

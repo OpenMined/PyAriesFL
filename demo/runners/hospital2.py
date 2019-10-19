@@ -24,13 +24,13 @@ from runners.support.utils import (
 LOGGER = logging.getLogger(__name__)
 
 
-class AliceAgent(DemoAgent):
+class Hospital2Agent(DemoAgent):
     def __init__(self, http_port: int, admin_port: int, **kwargs):
         super().__init__(
-            "Alice Agent",
+            "Hospital 2 Agent",
             http_port,
             admin_port,
-            prefix="Alice",
+            prefix="Hospital2",
             extra_args=[
                 "--auto-accept-invites",
                 "--auto-accept-requests",
@@ -214,7 +214,7 @@ async def main(start_port: int, show_timing: bool = False):
 
     try:
         log_status("#7 Provision an agent and wallet, get back configuration details")
-        agent = AliceAgent(
+        agent = Hospital2Agent(
             start_port, start_port + 1, genesis_data=genesis, timing=show_timing
         )
         await agent.listen_webhooks(start_port + 2)
@@ -268,12 +268,12 @@ async def main(start_port: int, show_timing: bool = False):
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Runs an Alice demo agent.")
+    parser = argparse.ArgumentParser(description="Runs an Hospital 2 demo agent.")
     parser.add_argument(
         "-p",
         "--port",
         type=int,
-        default=8030,
+        default=8070,
         metavar=("<port>"),
         help="Choose the starting port number to listen on",
     )
