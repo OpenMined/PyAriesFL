@@ -95,6 +95,28 @@ class CoordinatorAgent(DemoAgent):
                 },
             )
 
+        if state == "offer_received":
+            log_status("#15 After receiving credential offer, send credential request")
+            await self.admin_POST(
+                "/issue-credential/records/" f"{credential_exchange_id}/send-request"
+            )
+
+        elif state == "stored":
+            # elif state == "credential_received": ??
+            self.log("Storing credential in wallet")
+            cred_id = message["credential_id"]
+            log_status(f"#18.1 Stored credential {cred_id} in wallet")
+            resp = await self.admin_GET(f"/credential/{cred_id}")
+            log_json(resp, label="Credential details:")
+            log_json(
+                message["credential_request_metadata"],
+                label="Credential request metadata:",
+            )
+            self.log("credential_id", message["credential_id"])
+            self.log("credential_definition_id", message["credential_definition_id"])
+            self.log("schema_id", message["schema_id"])
+
+
     async def handle_present_proof(self, message):
         state = message["state"]
 
@@ -197,12 +219,12 @@ async def main(start_port: int, show_timing: bool = False):
         log_msg(json.dumps(connection["invitation"]), label="Invitation:", color=None)
         log_msg("*****************")
 
-        log_msg("Waiting for connection...")
-        await agent.detect_connection()
+        # log_msg("Waiting for connection...")
+        # await agent.detect_connection()
 
         async for option in prompt_loop(
             "(1) Issue Credential, (2) Send Proof Request, "
-            + "(3) Send Message (4) New Connection (X) Exit? [1/2/3/4/X] "
+            + "(3) Send Message (4) New Connection (5) Input New Invitation Details (X) Exit? [1/2/3/4/X] "
         ):
             if option is None or option in "xX":
                 break
@@ -296,7 +318,10 @@ async def main(start_port: int, show_timing: bool = False):
 
                 log_msg("Waiting for connection...")
                 await agent.detect_connection()
-
+            elif option == "5":
+                # handle new invitation
+                log_status("Input new invitation details")
+                await input_invitation(agent)
         if show_timing:
             timing = await agent.fetch_timing()
             if timing:
@@ -317,11 +342,47 @@ async def main(start_port: int, show_timing: bool = False):
     if not terminated:
         os._exit(1)
 
+async def input_invitation(agent):
+    async for details in prompt_loop("Invite details: "):
+        b64_invite = None
+        try:
+            url = urlparse(details)
+            query = url.query
+            if query and "c_i=" in query:
+                pos = query.index("c_i=") + 4
+                b64_invite = query[pos:]
+            else:
+                b64_invite = details
+        except ValueError:
+            b64_invite = details
+
+        if b64_invite:
+            try:
+                invite_json = base64.urlsafe_b64decode(b64_invite)
+                details = invite_json.decode("utf-8")
+            except binascii.Error:
+                pass
+            except UnicodeDecodeError:
+                pass
+
+        if details:
+            try:
+                json.loads(details)
+                break
+            except json.JSONDecodeError as e:
+                log_msg("Invalid invitation:", str(e))
+
+    with log_timer("Connect duration:"):
+        connection = await agent.admin_POST("/connections/receive-invitation", details)
+        agent.connection_id = connection["connection_id"]
+        log_json(connection, label="Invitation response:")
+
+        await agent.detect_connection()
 
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Runs a Faber demo agent.")
+    parser = argparse.ArgumentParser(description="Runs a Coordinator demo agent.")
     parser.add_argument(
         "-p",
         "--port",
