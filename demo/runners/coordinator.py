@@ -341,6 +341,42 @@ async def main(start_port: int, show_timing: bool = False):
     if not terminated:
         os._exit(1)
 
+async def input_invitation(agent):
+    async for details in prompt_loop("Invite details: "):
+        b64_invite = None
+        try:
+            url = urlparse(details)
+            query = url.query
+            if query and "c_i=" in query:
+                pos = query.index("c_i=") + 4
+                b64_invite = query[pos:]
+            else:
+                b64_invite = details
+        except ValueError:
+            b64_invite = details
+
+        if b64_invite:
+            try:
+                invite_json = base64.urlsafe_b64decode(b64_invite)
+                details = invite_json.decode("utf-8")
+            except binascii.Error:
+                pass
+            except UnicodeDecodeError:
+                pass
+
+        if details:
+            try:
+                json.loads(details)
+                break
+            except json.JSONDecodeError as e:
+                log_msg("Invalid invitation:", str(e))
+
+    with log_timer("Connect duration:"):
+        connection = await agent.admin_POST("/connections/receive-invitation", details)
+        agent.connection_id = connection["connection_id"]
+        log_json(connection, label="Invitation response:")
+
+        await agent.detect_connection()
 
 if __name__ == "__main__":
     import argparse
