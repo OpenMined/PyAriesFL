@@ -34,6 +34,7 @@ class NhsheadofficeAgent(DemoAgent):
             "NHS Head Office",
             http_port,
             admin_port,
+            seed="m88EdTmOnwVgDr08qK1zDLI0IzOyQuE5",
             prefix="Nhsheadoffice",
             extra_args=["--auto-accept-invites", "--auto-accept-requests"],
             **kwargs,

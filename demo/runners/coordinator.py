@@ -35,7 +35,6 @@ class CoordinatorAgent(DemoAgent):
             "Coordinator Agent",
             http_port,
             admin_port,
-            seed="m88EdTmOnwVgDr08qK1zDLI0IzOyQuE5",
             prefix="Coordinator",
             extra_args=["--auto-accept-invites", "--auto-accept-requests"],
             **kwargs,
@@ -178,7 +177,6 @@ async def main(start_port: int, show_timing: bool = False):
             start_port, start_port + 1, genesis_data=genesis, timing=show_timing
         )
         await agent.listen_webhooks(start_port + 2)
-        await agent.register_did()
 
         with log_timer("Startup duration:"):
             await agent.start_process()
@@ -223,41 +221,13 @@ async def main(start_port: int, show_timing: bool = False):
         # await agent.detect_connection()
 
         async for option in prompt_loop(
-            "(1) Issue Credential, (2) Send Proof Request, "
-            + "(3) Send Message (4) New Connection (5) Input New Invitation Details (X) Exit? [1/2/3/4/X] "
+            "(1) Send Proof Request, "
+            + "(2) Send Message (3) New Connection (4) Input New Invitation Details (X) Exit? [1/2/3/4/X] "
         ):
             if option is None or option in "xX":
                 break
 
             elif option == "1":
-                log_status("#13 Issue credential offer to X")
-
-                # TODO define attributes to send for credential
-                agent.cred_attrs[credential_definition_id] = {
-                    "name": "Alice Jane Smith",
-                    "date": "2018-05-28",
-                    "degree": "Maths",
-                    "age": "24",
-                }
-
-                cred_preview = {
-                    "@type": CRED_PREVIEW_TYPE,
-                    "attributes": [
-                        {"name": n, "value": v}
-                        for (n, v) in agent.cred_attrs[credential_definition_id].items()
-                    ],
-                }
-                offer_request = {
-                    "connection_id": agent.active_connection_id,
-                    "credential_definition_id": credential_definition_id,
-                    "comment": f"Offer on cred def id {credential_definition_id}",
-                    "credential_preview": cred_preview,
-                }
-                await agent.admin_POST("/issue-credential/send-offer", offer_request)
-
-                # TODO issue an additional credential for Student ID
-
-            elif option == "2":
                 log_status("#20 Request proof of degree from alice")
                 req_attrs = [
                     {"name": "name", "restrictions": [{"issuer_did": agent.did}]},
@@ -293,12 +263,12 @@ async def main(start_port: int, show_timing: bool = False):
                     "/present-proof/send-request", proof_request_web_request
                 )
 
-            elif option == "3":
+            elif option == "2":
                 msg = await prompt("Enter message: ")
                 await agent.admin_POST(
                     f"/connections/{agent.active_connection_id}/send-message", {"content": msg}
                 )
-            elif option == "4":
+            elif option == "3":
                 # handle new invitation
                 with log_timer("Generate invitation duration:"):
                     # Generate an invitation
@@ -318,7 +288,7 @@ async def main(start_port: int, show_timing: bool = False):
 
                 log_msg("Waiting for connection...")
                 await agent.detect_connection()
-            elif option == "5":
+            elif option == "4":
                 # handle new invitation
                 log_status("Input new invitation details")
                 await input_invitation(agent)
