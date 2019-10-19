@@ -6,6 +6,8 @@ import logging
 import os
 import sys
 from urllib.parse import urlparse
+from uuid import uuid4
+
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa
 
@@ -39,6 +41,7 @@ class Hospital3Agent(DemoAgent):
             seed=None,
             **kwargs,
         )
+        self.regulator_did = "FEgQXGPN7gpbPqAU65weBT"
         self.connection_id = None
         self._connection_ready = asyncio.Future()
         self.cred_state = {}
@@ -114,6 +117,7 @@ class Hospital3Agent(DemoAgent):
         state = message["state"]
         presentation_exchange_id = message["presentation_exchange_id"]
         presentation_request = message["presentation_request"]
+        self.log("Handle present proof", state)
 
         log_msg(
             "Presentation: state =",
@@ -178,6 +182,15 @@ class Hospital3Agent(DemoAgent):
                 ),
                 request,
             )
+        elif state == "presentation_received":
+            log_status("#27 Process the proof provided by X")
+            log_status("#28 Check if proof is valid")
+            proof = await self.admin_POST(
+                f"/present-proof/records/{presentation_exchange_id}/"
+                "verify-presentation"
+            )
+            self.log("Proof =", proof["verified"])
+        
 
     async def handle_basicmessages(self, message):
         self.log("Received message:", message["content"])
@@ -262,35 +275,32 @@ async def main(start_port: int, show_timing: bool = False):
                 log_status("Input new invitation details")
                 await input_invitation(agent)
             elif option == "5":
-                log_status("#20 Request proof of degree from Coordinator")
+                log_status("#20 Request proof of Research Certification")
                 req_attrs = [
-                    {"name": "name", "restrictions": [{"issuer_did": agent.did}]},
-                    {"name": "date", "restrictions": [{"issuer_did": agent.did}]},
-                    {"name": "degree", "restrictions": [{"issuer_did": agent.did}]},
-                    {"name": "self_attested_thing"},
+                    {"name": "date", "restrictions": [{"issuer_did": agent.regulator_did}]},
+                    {"name": "institution", "restrictions": [{"issuer_did": agent.regulator_did}]},
                 ]
-                req_preds = [
-                    {
-                        "name": "age",
-                        "p_type": ">=",
-                        "p_value": 18,
-                        "restrictions": [{"issuer_did": agent.did}],
-                    }
-                ]
+                # req_preds = [
+                #     {
+                #         "name": "age",
+                #         "p_type": ">=",
+                #         "p_value": 18,
+                #         "restrictions": [{"issuer_did": agent.did}],
+                #     }
+                # ]
                 indy_proof_request = {
-                    "name": "Proof of Education",
+                    "name": "Proof of Verified Research Institution",
                     "version": "1.0",
                     "nonce": str(uuid4().int),
                     "requested_attributes": {
                         f"0_{req_attr['name']}_uuid": req_attr for req_attr in req_attrs
                     },
                     "requested_predicates": {
-                        f"0_{req_pred['name']}_GE_uuid": req_pred
-                        for req_pred in req_preds
                     },
                 }
+                print("Asking for this proof: ", indy_proof_request)
                 proof_request_web_request = {
-                    "connection_id": agent.active_connection_id,
+                    "connection_id": agent.connection_id,
                     "proof_request": indy_proof_request,
                 }
                 await agent.admin_POST(
@@ -325,7 +335,7 @@ if __name__ == "__main__":
         "-p",
         "--port",
         type=int,
-        default=8110,
+        default=8050,
         metavar=("<port>"),
         help="Choose the starting port number to listen on",
     )
