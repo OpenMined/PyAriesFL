@@ -250,11 +250,10 @@ async def main(start_port: int, show_timing: bool = False):
                     "requested_attributes": {
                         f"0_{req_attr['name']}_uuid": req_attr for req_attr in req_attrs
                     },
-                    # "requested_predicates": {
-                    #     f"0_{req_pred['name']}_GE_uuid": req_pred
-                    #     for req_pred in req_preds
-                    # },
+                    "requested_predicates": {
+                    },
                 }
+                print("Asking for this proof: ", indy_proof_request)
                 proof_request_web_request = {
                     "connection_id": agent.active_connection_id,
                     "proof_request": indy_proof_request,

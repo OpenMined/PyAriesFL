@@ -134,6 +134,8 @@ async def main(start_port: int, show_timing: bool = False):
         await agent.listen_webhooks(start_port + 2)
         await agent.register_did()
 
+        log_msg("HEAD OFFICE DID: ", agent.did)
+
         with log_timer("Startup duration:"):
             await agent.start_process()
         log_msg("Admin url is at:", agent.admin_url)
