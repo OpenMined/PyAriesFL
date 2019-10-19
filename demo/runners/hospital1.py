@@ -6,6 +6,8 @@ import logging
 import os
 import sys
 from urllib.parse import urlparse
+from uuid import uuid4
+
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa
 
@@ -179,6 +181,15 @@ class Hospital1Agent(DemoAgent):
                 ),
                 request,
             )
+        elif state == "presentation_received":
+            log_status("#27 Process the proof provided by X")
+            log_status("#28 Check if proof is valid")
+            proof = await self.admin_POST(
+                f"/present-proof/records/{presentation_exchange_id}/"
+                "verify-presentation"
+            )
+            self.log("Proof =", proof["verified"])
+        
 
     async def handle_basicmessages(self, message):
         self.log("Received message:", message["content"])
@@ -290,7 +301,7 @@ async def main(start_port: int, show_timing: bool = False):
                 }
                 print("Asking for this proof: ", indy_proof_request)
                 proof_request_web_request = {
-                    "connection_id": agent.active_connection_id,
+                    "connection_id": agent.connection_id,
                     "proof_request": indy_proof_request,
                 }
                 await agent.admin_POST(

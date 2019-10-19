@@ -140,6 +140,62 @@ class CoordinatorAgent(DemoAgent):
             self.log("Proof =", proof["verified"])
             if proof["verified"]:
                 self.trusted_connection_ids.append(message["connection_id"])
+        elif state == "request_received":
+            log_status(
+                "#24 Query for credentials in the wallet that satisfy the proof request"
+            )
+
+            # include self-attested attributes (not included in credentials)
+            credentials_by_reft = {}
+            revealed = {}
+            self_attested = {}
+            predicates = {}
+
+            # select credentials to provide for the proof
+            credentials = await self.admin_GET(
+                f"/present-proof/records/{presentation_exchange_id}/credentials"
+            )
+            if credentials:
+                for row in credentials:
+                    for referent in row["presentation_referents"]:
+                        if referent not in credentials_by_reft:
+                            credentials_by_reft[referent] = row
+
+            for referent in presentation_request["requested_attributes"]:
+                if referent in credentials_by_reft:
+                    revealed[referent] = {
+                        "cred_id": credentials_by_reft[referent]["cred_info"][
+                            "referent"
+                        ],
+                        "revealed": True,
+                    }
+                else:
+                    self_attested[referent] = "my self-attested value"
+
+            for referent in presentation_request["requested_predicates"]:
+                if referent in credentials_by_reft:
+                    predicates[referent] = {
+                        "cred_id": credentials_by_reft[referent]["cred_info"][
+                            "referent"
+                        ],
+                        "revealed": True,
+                    }
+
+            log_status("#25 Generate the proof")
+            request = {
+                "requested_predicates": predicates,
+                "requested_attributes": revealed,
+                "self_attested_attributes": self_attested,
+            }
+
+            log_status("#26 Send the proof to X")
+            await self.admin_POST(
+                (
+                    "/present-proof/records/"
+                    f"{presentation_exchange_id}/send-presentation"
+                ),
+                request,
+            )
 
     async def handle_basicmessages(self, message):
         self.log("Received message:", message["content"])
