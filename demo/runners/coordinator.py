@@ -223,7 +223,7 @@ async def main(start_port: int, show_timing: bool = False):
 
         async for option in prompt_loop(
             "(1) Issue Credential, (2) Send Proof Request, "
-            + "(3) Send Message (4) New Connection (5) Inout New Invitation Details (X) Exit? [1/2/3/4/X] "
+            + "(3) Send Message (4) New Connection (5) Input New Invitation Details (X) Exit? [1/2/3/4/X] "
         ):
             if option is None or option in "xX":
                 break
