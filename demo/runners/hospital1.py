@@ -71,6 +71,24 @@ class Hospital1Agent(DemoAgent):
             credential_exchange_id,
         )
 
+        if state == "request_received":
+            log_status("#17 Issue credential to X")
+            # issue credentials based on the credential_definition_id
+            cred_attrs = self.cred_attrs[message["credential_definition_id"]]
+            cred_preview = {
+                "@type": CRED_PREVIEW_TYPE,
+                "attributes": [
+                    {"name": n, "value": v} for (n, v) in cred_attrs.items()
+                ],
+            }
+            await self.admin_POST(
+                f"/issue-credential/records/{credential_exchange_id}/issue",
+                {
+                    "comment": f"Issuing credential, exchange {credential_exchange_id}",
+                    "credential_preview": cred_preview,
+                },
+            )
+
         if state == "offer_received":
             log_status("#15 After receiving credential offer, send credential request")
             await self.admin_POST(
@@ -228,7 +246,7 @@ async def main(start_port: int, show_timing: bool = False):
         await input_invitation(agent)
 
         async for option in prompt_loop(
-            "(3) Send Message (4) Input New Invitation (X) Exit? [3/4/X]: "
+            "(3) Send Message (4) Input New Invitation (5) Send Proof Request to the Issuer (X) Exit? [3/4/5/X]: "
         ):
             if option is None or option in "xX":
                 break
@@ -243,7 +261,41 @@ async def main(start_port: int, show_timing: bool = False):
                 # handle new invitation
                 log_status("Input new invitation details")
                 await input_invitation(agent)
-
+            elif option == "5":
+                log_status("#20 Request proof of degree from Coordinator")
+                req_attrs = [
+                    {"name": "name", "restrictions": [{"issuer_did": agent.did}]},
+                    {"name": "date", "restrictions": [{"issuer_did": agent.did}]},
+                    {"name": "degree", "restrictions": [{"issuer_did": agent.did}]},
+                    {"name": "self_attested_thing"},
+                ]
+                req_preds = [
+                    {
+                        "name": "age",
+                        "p_type": ">=",
+                        "p_value": 18,
+                        "restrictions": [{"issuer_did": agent.did}],
+                    }
+                ]
+                indy_proof_request = {
+                    "name": "Proof of Education",
+                    "version": "1.0",
+                    "nonce": str(uuid4().int),
+                    "requested_attributes": {
+                        f"0_{req_attr['name']}_uuid": req_attr for req_attr in req_attrs
+                    },
+                    "requested_predicates": {
+                        f"0_{req_pred['name']}_GE_uuid": req_pred
+                        for req_pred in req_preds
+                    },
+                }
+                proof_request_web_request = {
+                    "connection_id": agent.active_connection_id,
+                    "proof_request": indy_proof_request,
+                }
+                await agent.admin_POST(
+                    "/present-proof/send-request", proof_request_web_request
+                )
         if show_timing:
             timing = await agent.fetch_timing()
             if timing:

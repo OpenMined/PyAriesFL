@@ -29,7 +29,7 @@ CRED_PREVIEW_TYPE = (
 LOGGER = logging.getLogger(__name__)
 
 
-class FaberAgent(DemoAgent):
+class CoordinatorAgent(DemoAgent):
     def __init__(self, http_port: int, admin_port: int, **kwargs):
         super().__init__(
             "Coordinator Agent",
