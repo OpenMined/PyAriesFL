@@ -31,7 +31,7 @@ LOGGER = logging.getLogger(__name__)
 class RegulatorAgent(DemoAgent):
     def __init__(self, http_port: int, admin_port: int, **kwargs):
         super().__init__(
-            "NHS Head Office",
+            "Health Research Regulator",
             http_port,
             admin_port,
             seed="rUOC2MiUaukP0zbrSXjqXf9Sg0zu5iNt",

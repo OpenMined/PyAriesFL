@@ -121,8 +121,9 @@ class CoordinatorAgent(DemoAgent):
 
     async def handle_present_proof(self, message):
         state = message["state"]
-
+        presentation_request = message["presentation_request"]
         presentation_exchange_id = message["presentation_exchange_id"]
+
         self.log(
             "Presentation: state =",
             state,
@@ -401,8 +402,9 @@ async def input_invitation(agent):
 
     with log_timer("Connect duration:"):
         connection = await agent.admin_POST("/connections/receive-invitation", details)
-        agent.connection_id = connection["connection_id"]
+        agent.active_connection_id = connection["connection_id"]
         log_json(connection, label="Invitation response:")
+        agent._connection_ready = asyncio.Future()
 
         await agent.detect_connection()
 
