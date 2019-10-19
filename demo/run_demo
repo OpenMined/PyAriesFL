@@ -7,22 +7,26 @@ cd $(dirname $0)
 AGENT="$1"
 shift
 
-if [ "$AGENT" = "faber" ]; then
-	AGENT_MODULE="faber"
-	AGENT_PORT=8020
-	AGENT_PORT_RANGE=8020-8027
-elif [ "$AGENT" = "alice" ]; then
-	AGENT_MODULE="alice"
-	AGENT_PORT=8030
-	AGENT_PORT_RANGE=8030-8037
-elif [ "$AGENT" = "acme" ]; then
-	AGENT_MODULE="acme"
-	AGENT_PORT=8040
-	AGENT_PORT_RANGE=8040-8047
-elif [ "$AGENT" = "performance" ]; then
-	AGENT_MODULE="performance"
-	AGENT_PORT=8030
-	AGENT_PORT_RANGE=8030-8038
+if [ "$AGENT" = "coordinator" ]; then
+	AGENT_MODULE="coordinator"
+	AGENT_PORT=8050
+	AGENT_PORT_RANGE=8050-8058
+elif [ "$AGENT" = "bob" ]; then
+	AGENT_MODULE="bob"
+	AGENT_PORT=8060
+	AGENT_PORT_RANGE=8060-8068
+elif [ "$AGENT" = "hospital1" ]; then
+	AGENT_MODULE="hospital1"
+	AGENT_PORT=8070
+	AGENT_PORT_RANGE=8070-8078
+elif [ "$AGENT" = "nhsheadoffice" ]; then
+	AGENT_MODULE="nhsheadoffice"
+	AGENT_PORT=8080
+	AGENT_PORT_RANGE=8080-8088
+elif [ "$AGENT" = "hospital2" ]; then
+	AGENT_MODULE="hospital2"
+	AGENT_PORT=8090
+	AGENT_PORT_RANGE=8090-8098
 else
 	echo "Please specify which agent you want to run. Choose from 'faber', 'alice', 'acme', or 'performance'."
 	exit 1

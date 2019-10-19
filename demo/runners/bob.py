@@ -27,10 +27,10 @@ LOGGER = logging.getLogger(__name__)
 class AliceAgent(DemoAgent):
     def __init__(self, http_port: int, admin_port: int, **kwargs):
         super().__init__(
-            "Wip Agent",
+            "Bob Agent",
             http_port,
             admin_port,
-            prefix="Wip",
+            prefix="Bob",
             extra_args=[
                 "--auto-accept-invites",
                 "--auto-accept-requests",

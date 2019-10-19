@@ -259,6 +259,7 @@ class DemoAgent:
         if python_path:
             my_env["PYTHONPATH"] = python_path
 
+        self.log("Starting process", python_path, bin_path, wait)
         agent_args = self.get_process_args(bin_path)
 
         # start agent sub-process
@@ -325,6 +326,7 @@ class DemoAgent:
 
     async def admin_request(self, method, path, data=None, text=False, params=None):
         params = {k: v for (k, v) in (params or {}).items() if v is not None}
+        self.log("Request", self.admin_url + path, data)
         async with self.client_session.request(
             method, self.admin_url + path, json=data, params=params
         ) as resp:
@@ -348,7 +350,7 @@ class DemoAgent:
 
     async def detect_process(self):
         text = None
-
+        self.log("Detect Process")
         async def fetch_swagger(url: str, timeout: float):
             text = None
             start = default_timer()
@@ -366,7 +368,6 @@ class DemoAgent:
 
         swagger_url = self.admin_url + "/api/docs/swagger.json"
         text = await fetch_swagger(swagger_url, START_TIMEOUT)
-
         if not text:
             raise Exception(
                 "Timed out waiting for agent process to start. "
