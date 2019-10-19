@@ -26,6 +26,7 @@ RUN_MODE = os.getenv("RUNMODE")
 
 GENESIS_URL = os.getenv("GENESIS_URL")
 LEDGER_URL = os.getenv("LEDGER_URL")
+LEDGER = os.getenv("LEDGER")
 
 if RUN_MODE == "docker":
     DEFAULT_INTERNAL_HOST = os.getenv("DOCKERHOST") or "host.docker.internal"
@@ -46,6 +47,10 @@ async def default_genesis_txns():
             async with ClientSession() as session:
                 async with session.get(GENESIS_URL) as resp:
                     genesis = await resp.text()
+        elif LEDGER == "sovrin":
+            print("Sovrin")
+            with open("sovrin-genesis.txt", "r") as genesis_file:
+                genesis = genesis_file.read()
         elif RUN_MODE == "docker":
             async with ClientSession() as session:
                 async with session.get(

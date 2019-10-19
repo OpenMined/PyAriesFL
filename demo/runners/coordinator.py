@@ -29,13 +29,14 @@ CRED_PREVIEW_TYPE = (
 LOGGER = logging.getLogger(__name__)
 
 
-class FaberAgent(DemoAgent):
+class CoordinatorAgent(DemoAgent):
     def __init__(self, http_port: int, admin_port: int, **kwargs):
         super().__init__(
             "Coordinator Agent",
             http_port,
             admin_port,
-            prefix="Faber",
+            seed="m88EdTmOnwVgDr08qK1zDLI0IzOyQuE5",
+            prefix="Coordinator",
             extra_args=["--auto-accept-invites", "--auto-accept-requests"],
             **kwargs,
         )
@@ -151,7 +152,7 @@ async def main(start_port: int, show_timing: bool = False):
 
     try:
         log_status("#1 Provision an agent and wallet, get back configuration details")
-        agent = FaberAgent(
+        agent = CoordinatorAgent(
             start_port, start_port + 1, genesis_data=genesis, timing=show_timing
         )
         await agent.listen_webhooks(start_port + 2)
