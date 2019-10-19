@@ -39,6 +39,7 @@ class Hospital1Agent(DemoAgent):
             seed=None,
             **kwargs,
         )
+        self.regulator_did = "UNkLeqjiWWAjt1Pn8VggFC"
         self.connection_id = None
         self._connection_ready = asyncio.Future()
         self.cred_state = {}
@@ -264,10 +265,7 @@ async def main(start_port: int, show_timing: bool = False):
             elif option == "5":
                 log_status("#20 Request proof of degree from Coordinator")
                 req_attrs = [
-                    {"name": "name", "restrictions": [{"issuer_did": agent.did}]},
-                    {"name": "date", "restrictions": [{"issuer_did": agent.did}]},
-                    {"name": "degree", "restrictions": [{"issuer_did": agent.did}]},
-                    {"name": "self_attested_thing"},
+                    {"name": "date", "restrictions": [{"issuer_did": agent.regulatordid}]},
                 ]
                 req_preds = [
                     {

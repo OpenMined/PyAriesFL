@@ -34,6 +34,7 @@ class RegulatorAgent(DemoAgent):
             "NHS Head Office",
             http_port,
             admin_port,
+            seed="rUOC2MiUaukP0zbrSXjqXf9Sg0zu5iNt",
             prefix="Regulator",
             extra_args=["--auto-accept-invites", "--auto-accept-requests"],
             **kwargs,
