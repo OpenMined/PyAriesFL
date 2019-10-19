@@ -227,9 +227,6 @@ async def generate_new_connection(agent):
 
 async def main(start_port: int, show_timing: bool = False):
 
-    flask_app = create_app()
-    flask_app.run()
-
     genesis = await default_genesis_txns()
     if not genesis:
         print("Error retrieving ledger genesis transactions")
