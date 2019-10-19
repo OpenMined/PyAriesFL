@@ -39,7 +39,7 @@ class Hospital1Agent(DemoAgent):
             seed=None,
             **kwargs,
         )
-        self.regulator_did = "UNkLeqjiWWAjt1Pn8VggFC"
+        self.regulator_did = "FEgQXGPN7gpbPqAU65weBT"
         self.connection_id = None
         self._connection_ready = asyncio.Future()
         self.cred_state = {}
@@ -263,30 +263,32 @@ async def main(start_port: int, show_timing: bool = False):
                 log_status("Input new invitation details")
                 await input_invitation(agent)
             elif option == "5":
-                log_status("#20 Request proof of degree from Coordinator")
+                log_status("#20 Request proof of degree from Regulator")
                 req_attrs = [
-                    {"name": "date", "restrictions": [{"issuer_did": agent.regulatordid}]},
+                    {"name": "date", "restrictions": [{"issuer_did": agent.regulator_did}]},
+                    {"name": "institution", "restrictions": [{"issuer_did": agent.regulator_did}]},
                 ]
-                req_preds = [
-                    {
-                        "name": "age",
-                        "p_type": ">=",
-                        "p_value": 18,
-                        "restrictions": [{"issuer_did": agent.did}],
-                    }
-                ]
+                # req_preds = [
+                #     {
+                #         "name": "age",
+                #         "p_type": ">=",
+                #         "p_value": 18,
+                #         "restrictions": [{"issuer_did": agent.did}],
+                #     }
+                # ]
                 indy_proof_request = {
-                    "name": "Proof of Education",
+                    "name": "Proof of Verified Coordinator",
                     "version": "1.0",
                     "nonce": str(uuid4().int),
                     "requested_attributes": {
                         f"0_{req_attr['name']}_uuid": req_attr for req_attr in req_attrs
                     },
                     "requested_predicates": {
-                        f"0_{req_pred['name']}_GE_uuid": req_pred
-                        for req_pred in req_preds
+                        # f"0_{req_pred['name']}_GE_uuid": req_pred
+                        # for req_pred in req_preds
                     },
                 }
+                print("Asking for this proof: ", indy_proof_request)
                 proof_request_web_request = {
                     "connection_id": agent.active_connection_id,
                     "proof_request": indy_proof_request,
