@@ -94,6 +94,28 @@ class CoordinatorAgent(DemoAgent):
                 },
             )
 
+        if state == "offer_received":
+            log_status("#15 After receiving credential offer, send credential request")
+            await self.admin_POST(
+                "/issue-credential/records/" f"{credential_exchange_id}/send-request"
+            )
+
+        elif state == "stored":
+            # elif state == "credential_received": ??
+            self.log("Storing credential in wallet")
+            cred_id = message["credential_id"]
+            log_status(f"#18.1 Stored credential {cred_id} in wallet")
+            resp = await self.admin_GET(f"/credential/{cred_id}")
+            log_json(resp, label="Credential details:")
+            log_json(
+                message["credential_request_metadata"],
+                label="Credential request metadata:",
+            )
+            self.log("credential_id", message["credential_id"])
+            self.log("credential_definition_id", message["credential_definition_id"])
+            self.log("schema_id", message["schema_id"])
+
+
     async def handle_present_proof(self, message):
         state = message["state"]
 
