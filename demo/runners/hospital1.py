@@ -5,6 +5,8 @@ import json
 import logging
 import os
 import sys
+import torch
+
 from urllib.parse import urlparse
 from uuid import uuid4
 
@@ -118,7 +120,6 @@ class Hospital1Agent(DemoAgent):
         state = message["state"]
         presentation_exchange_id = message["presentation_exchange_id"]
         presentation_request = message["presentation_request"]
-        self.log("Handle present proof", state)
 
         log_msg(
             "Presentation: state =",
@@ -191,7 +192,7 @@ class Hospital1Agent(DemoAgent):
                 "verify-presentation"
             )
             self.log("Proof =", proof["verified"])
-        
+
 
     async def handle_basicmessages(self, message):
         self.log("Received message:", message["content"])
