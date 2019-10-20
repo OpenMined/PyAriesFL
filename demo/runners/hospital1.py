@@ -31,10 +31,10 @@ LOGGER = logging.getLogger(__name__)
 class Hospital1Agent(DemoAgent):
     def __init__(self, http_port: int, admin_port: int, **kwargs):
         super().__init__(
-            "Hospital 1 Agent",
+            "St Thomas' Hospital Agent",
             http_port,
             admin_port,
-            prefix="Hospital1",
+            prefix="St Thomas' Hospital",
             extra_args=[
                 "--auto-accept-invites",
                 "--auto-accept-requests",

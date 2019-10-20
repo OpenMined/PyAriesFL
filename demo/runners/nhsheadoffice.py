@@ -218,7 +218,7 @@ async def main(start_port: int, show_timing: bool = False):
 
 
             elif option == "2":
-                log_status("#13 Issue credential offer to X")
+                log_status("#13 Issue Verified Hospital credential offer to X")
 
                 today = date.today()
                 # TODO define attributes to send for credential

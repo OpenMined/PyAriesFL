@@ -12,7 +12,7 @@ if [ "$AGENT" = "coordinator" ]; then
 	AGENT_PORT=8050
 	AGENT_PORT_RANGE=8050-8058
 	echo "Preparing agent image..."
-	docker build -q -t "$AGENT" -f ../docker/Dockerfile.demo .. || exit 1
+	docker build -q -t "$AGENT" -f ../docker/Dockerfile_coordinator.demo .. || exit 1
 
 elif [ "$AGENT" = "hospital1" ]; then
 	AGENT_MODULE="hospital1"
@@ -82,6 +82,7 @@ fi
 
 echo $DOCKERHOST
 
+LEDGER_URL=http://dev.bcovrin.vonx.io
 DOCKER_ENV="-e LOG_LEVEL=${LOG_LEVEL} -e RUNMODE=${RUNMODE} -e DOCKERHOST=${DOCKERHOST}"
 if ! [ -z "$POSTGRES" ]; then
 	DOCKER_ENV="${DOCKER_ENV} -e POSTGRES=1 -e RUST_BACKTRACE=1"

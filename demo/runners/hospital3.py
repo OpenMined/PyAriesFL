@@ -5,6 +5,8 @@ import json
 import logging
 import os
 import sys
+import torch
+
 from urllib.parse import urlparse
 from uuid import uuid4
 
@@ -26,13 +28,13 @@ from runners.support.utils import (
 LOGGER = logging.getLogger(__name__)
 
 
-class Hospital3Agent(DemoAgent):
+class Hospital1Agent(DemoAgent):
     def __init__(self, http_port: int, admin_port: int, **kwargs):
         super().__init__(
-            "Hospital 3 Agent",
+            "St Bartholomew's Hospital Agent",
             http_port,
             admin_port,
-            prefix="Hospital3",
+            prefix="St Bartholomew's",
             extra_args=[
                 "--auto-accept-invites",
                 "--auto-accept-requests",
@@ -41,6 +43,7 @@ class Hospital3Agent(DemoAgent):
             seed=None,
             **kwargs,
         )
+        self.hospital_name = "St Bartholomew's Hospital Agent"
         self.regulator_did = "FEgQXGPN7gpbPqAU65weBT"
         self.connection_id = None
         self._connection_ready = asyncio.Future()
@@ -117,7 +120,6 @@ class Hospital3Agent(DemoAgent):
         state = message["state"]
         presentation_exchange_id = message["presentation_exchange_id"]
         presentation_request = message["presentation_request"]
-        self.log("Handle present proof", state)
 
         log_msg(
             "Presentation: state =",
@@ -156,7 +158,7 @@ class Hospital3Agent(DemoAgent):
                         "revealed": True,
                     }
                 else:
-                    self_attested[referent] = "my self-attested value"
+                    self_attested[referent] = self.hospital_name
 
             for referent in presentation_request["requested_predicates"]:
                 if referent in credentials_by_reft:
@@ -190,7 +192,7 @@ class Hospital3Agent(DemoAgent):
                 "verify-presentation"
             )
             self.log("Proof =", proof["verified"])
-        
+
 
     async def handle_basicmessages(self, message):
         self.log("Received message:", message["content"])
@@ -245,7 +247,7 @@ async def main(start_port: int, show_timing: bool = False):
 
     try:
         log_status("#7 Provision an agent and wallet, get back configuration details")
-        agent = Hospital3Agent(
+        agent = Hospital1Agent(
             start_port, start_port + 1, genesis_data=genesis, timing=show_timing
         )
         await agent.listen_webhooks(start_port + 2)
@@ -280,14 +282,6 @@ async def main(start_port: int, show_timing: bool = False):
                     {"name": "date", "restrictions": [{"issuer_did": agent.regulator_did}]},
                     {"name": "institution", "restrictions": [{"issuer_did": agent.regulator_did}]},
                 ]
-                # req_preds = [
-                #     {
-                #         "name": "age",
-                #         "p_type": ">=",
-                #         "p_value": 18,
-                #         "restrictions": [{"issuer_did": agent.did}],
-                #     }
-                # ]
                 indy_proof_request = {
                     "name": "Proof of Verified Research Institution",
                     "version": "1.0",
@@ -330,7 +324,7 @@ async def main(start_port: int, show_timing: bool = False):
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Runs an Hospital 3 demo agent.")
+    parser = argparse.ArgumentParser(description="Runs an Hospital 1 demo agent.")
     parser.add_argument(
         "-p",
         "--port",
