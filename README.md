@@ -16,7 +16,7 @@ How we built it
 
 We created the secured communication channel using Hyperledger Aries. The DID of each entity is stored in a blockchain. The infrastructure is blockchain-agnostic.
 
-We gathered mental health data relating to a survey taken by developers in 2014 link. The dataset was federated into three batches; these three batches included in our three hospital containers, respectively. Our learning coordinator begins with an untrained model. When our learning protocol begins, the coordinator sends the untrained deep neural-network (DNN) to the first hospital, this hospital cleans its dataset, trains the DNN and sends it back to the coordinator once completed.
+We gathered mental health data relating to a survey taken by developers in 2014 [link](https://www.kaggle.com/osmi/mental-health-in-tech-survey). The dataset was federated into three batches; these three batches included in our three hospital containers, respectively. Our learning coordinator begins with an untrained model. When our learning protocol begins, the coordinator sends the untrained deep neural-network (DNN) to the first hospital, this hospital cleans its dataset, trains the DNN and sends it back to the coordinator once completed.
 
 The coordinator then sends the updated model to the next hospital and waits for this hospital to perform the cleaning and training tasks. This process continues until each hospital has trained the model with its data. At the end of the training process, the researcher concludes with a model which trained over n batches, where n is the number of hospitals.
 Challenges we ran into
