@@ -41,8 +41,8 @@ elif [ "$AGENT" = "regulator" ]; then
 	AGENT_PORT_RANGE=8100-8108
 	echo "Preparing agent image..."
 	docker build -q -t "$AGENT" -f ../docker/Dockerfile.demo .. || exit 1
-elif [ "$AGENT" = "hospital3" ]; then
-	AGENT_MODULE="hospital3"
+elif [ "$AGENT" = "bridge_hospital" ]; then
+	AGENT_MODULE="bridge_hospital"
 	AGENT_PORT=8110
 	AGENT_PORT_RANGE=8110-8118
 	docker build -q -t "$AGENT" -f ../docker/Dockerfile.demo .. || exit 1
@@ -57,7 +57,8 @@ elif [ "$AGENT" = "hospital1_web" ]; then
 	AGENT_PORT_RANGE=8160-8170
 	docker build -q -t "$AGENT" -f ../docker/Dockerfile.demo .. || exit 1
 else
-	echo "Please specify which agent you want to run. Choose from 'coordinator', 'hospital1', 'hospital2', 'hospital3', 'nhsheadoffice' or 'regulator'."
+	echo "Please specify which agent you want to run. Choose from 'coordinator', 'hospital1', 'bart_hospital', 'bridge_hospital', 'nhsheadoffice' or 'regulator'."
+	echo "Please specify which agent you want to run. Choose from 'coordinator', 'hospital1', 'bart_hospital', 'bridge_hospital', 'nhsheadoffice' or 'regulator'."
 	exit 1
 fi
 
