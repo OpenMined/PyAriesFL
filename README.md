@@ -1,6 +1,55 @@
 # Team-43
 Distributed Deep-learning DID-acts
 
+# Guide
+
+This repo has been forked from Hyperledger Aries Cloudagent [link](https://github.com/hyperledger/aries-cloudagent-python) provided by British Columbia Government. 
+
+We have created our own agents to implement a federated deep learning scenario, where participants have to present their credentials to get access to the ecosystem. These agents can be found in the /demo/runners folder. These agents connect, by default, to the BC government development of Hyperledger Indy ledger [link](http://dev.bcovrin.vonx.io).
+
+To run the scenario:
+
+```
+git clone https://github.com/diffusioncon/Team-43
+
+cd demo
+```
+1) Start the NHS Trusted agent.
+```
+LEDGER_URL=http://dev.bcovrin.vonx.io ./run_demo nhsheadoffice
+```
+
+2) Start one of the hospitals.
+```
+LEDGER_URL=http://dev.bcovrin.vonx.io ./run_demo hospital1
+```
+3) Use NHS's invitation URL to connect the hospital to it.
+
+4) Follow the on-screen menu to issue credentials from the NHS Trusted agent to the Hospital.
+
+4) Start the Coordinator.
+```
+LEDGER_URL=http://dev.bcovrin.vonx.io ./run_demo coordinator
+```
+5) Follow the on-screen menu in the hospital terminal to accept the new invitation link from the coordinator, and connect to it.
+
+6) Follow the on-screen menu so the coordinator can check the hospital's credentials.
+
+7) Start the regulator.
+
+```
+LEDGER_URL=http://dev.bcovrin.vonx.io ./run_demo regulator
+
+```
+8) Follow the on-screen menu on the coordinator (4) to connect to the regulator.
+
+9) Follow the on-screen menu to Issue a credential from the Regulator to the Coordinator.
+
+10) Follow the on-screen menu on the Coordinator (3) to create New Invitation for the hospital.
+
+11) Follow the on-screen menu to check from the hospital terminal, the coordinator's credentials.
+
+12) Exchange securely the model and continue with the training.
 
 # Inspiration
 
@@ -51,6 +100,7 @@ One of the biggest unknows for us was whether the DIDComm protocol in aries coul
 
 # Created by
 
-    **Will Abramson** 
-    **Adam James Hall**
-    **Pavlos Papadopoulos**
+    Will Abramson
+    Adam James Hall
+    Pavlos Papadopoulos
+
