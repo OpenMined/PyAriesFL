@@ -165,7 +165,7 @@ async def main(start_port: int, show_timing: bool = False):
                 _,  # schema id
                 credential_definition_id,
             ) = await agent.register_schema_and_creddef(
-                "Verified Hospital schema", version, ["date"]
+                "Verified Hospital schema", version, ["date", "hospital_name"]
             )
 
         # TODO add an additional credential for Student ID
@@ -223,7 +223,7 @@ async def main(start_port: int, show_timing: bool = False):
                 today = date.today()
                 # TODO define attributes to send for credential
                 agent.cred_attrs[credential_definition_id] = {
-                    # "name": str(credential_definition_id),
+                    "hospital_name": agent.current_hospital_name,
                     "date": str(today),
                     # "degree": "Health",
                     # "age": "24",

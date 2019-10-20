@@ -200,6 +200,7 @@ class CoordinatorAgent(DemoAgent):
             )
 
     async def handle_basicmessages(self, message):
+        from_id = message["connection_id"]
         self.log("Received message:", message["content"])
         self.log(message)
 
@@ -274,6 +275,7 @@ async def main(start_port: int, show_timing: bool = False):
                 log_status("#20 Request proof of degree from alice")
                 req_attrs = [
                     {"name": "date", "restrictions": [{"issuer_did": agent.nhsheadoffice_did}]},
+                    {"name": "hospital_name", "restrictions": [{"issuer_did": agent.nhsheadoffice_did}]},
                 ]
                 # req_preds = [
                 #     {
