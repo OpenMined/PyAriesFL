@@ -41,8 +41,8 @@ elif [ "$AGENT" = "regulator" ]; then
 	AGENT_PORT_RANGE=8100-8108
 	echo "Preparing agent image..."
 	docker build -q -t "$AGENT" -f ../docker/Dockerfile.demo .. || exit 1
-elif [ "$AGENT" = "bridge_hospital" ]; then
-	AGENT_MODULE="bridge_hospital"
+elif [ "$AGENT" = "hospital3" ]; then
+	AGENT_MODULE="hospital3"
 	AGENT_PORT=8110
 	AGENT_PORT_RANGE=8110-8118
 	docker build -q -t "$AGENT" -f ../docker/Dockerfile.demo .. || exit 1
