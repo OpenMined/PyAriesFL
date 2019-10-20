@@ -27,29 +27,30 @@ LEDGER_URL=http://dev.bcovrin.vonx.io ./run_demo hospital1
 
 4) Follow the on-screen menu to issue credentials from the NHS Trusted agent to the Hospital.
 
-4) Start the Coordinator.
+5) Start the Coordinator.
 ```
 LEDGER_URL=http://dev.bcovrin.vonx.io ./run_demo coordinator
 ```
-5) Follow the on-screen menu in the hospital terminal to accept the new invitation link from the coordinator, and connect to it.
 
-6) Follow the on-screen menu so the coordinator can check the hospital's credentials.
-
-7) Start the regulator.
+6) Start the regulator.
 
 ```
 LEDGER_URL=http://dev.bcovrin.vonx.io ./run_demo regulator
 
 ```
-8) Follow the on-screen menu on the coordinator (4) to connect to the regulator.
+7) Follow the on-screen menu on the coordinator (4) to connect to the regulator.
 
-9) Follow the on-screen menu to Issue a credential from the Regulator to the Coordinator.
+8) Follow the on-screen menu to Issue a credential from the Regulator to the Coordinator.
 
-10) Follow the on-screen menu on the Coordinator (3) to create New Invitation for the hospital.
+9) Follow the on-screen menu on the Coordinator (3) to create New Invitation for the hospital.
 
-11) Follow the on-screen menu to check from the hospital terminal, the coordinator's credentials.
+10) Follow the on-screen menu in the hospital terminal to accept the new invitation link from the coordinator, and connect to it.
 
-12) Exchange securely the model and continue with the training.
+11) Follow the on-screen menu so the coordinator can check the hospital's credentials. If proof is valid, the coordinator adds this hospital to the list of the trusted connections.
+
+12) Follow the on-screen menu to check from the hospital terminal, the coordinator's credentials. 
+
+13) After the hospitall has been added to the coordinator's trusted list, can be start the training process by accepting the model from the coordinator, trains the model, and sends back the updated model (updated model parameters) to the coordinator. Afterwards, coordinator sends the new updated model to the next hospital to continue the training until the full training procedure has been completed.
 
 # Inspiration
 
@@ -61,7 +62,8 @@ Our project allows the participants to create a secure channel using DID communi
 A trusted source as the NHS Head Office issued the credentials to the participants, and a regulatory authority granted the researcher's credentials. After the credentials validation from each side using the public DIDs, the researcher sends his model to each participant with confidence that they are legitimate. The participants train their raw data, and a secure aggregator summarizes their outputs before sent back to the researcher.
 
 The final federated trained model defends the researcher from malicious misuses such as model poisoning attacks, and in the same time, it is protecting the privacy of the participants since their raw data never left their premises.
-How we built it
+
+#How we built it
 
 We created the secured communication channel using Hyperledger Aries. The DID of each entity is stored in a blockchain. The infrastructure is blockchain-agnostic.
 
