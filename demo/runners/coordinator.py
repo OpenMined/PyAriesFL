@@ -43,6 +43,7 @@ class CoordinatorAgent(DemoAgent):
         self.active_connection_id = None
         self.connection_list = []
         self.trusted_connection_ids = []
+        self.trusted_hospitals = []
         self._connection_ready = asyncio.Future()
         self.cred_state = {}
         # TODO define a dict to hold credential attributes
@@ -139,7 +140,21 @@ class CoordinatorAgent(DemoAgent):
             )
             self.log("Proof =", proof["verified"])
             if proof["verified"]:
+                hospital = {"connection_id" : message["connection_id"]}
+                self.log(hospital)
+                for attribute in presentation_request['requested_attributes']:
+                    self.log(attribute)
+                    attribute_name = presentation_request['requested_attributes'][attribute]["name"]
+                    self.log("Attribute name: ",  presentation_request['requested_attributes'][attribute]["name"])
+                    # self.log(attribute.name)
+                    self.log("Attribte value", proof["presentation"]["requested_proof"]["revealed_attrs"][attribute]['raw'])
+                    hospital[attribute_name] = proof["presentation"]["requested_proof"]["revealed_attrs"][attribute]['raw']
+                self.log(hospital)
+
+                # self.log(proof)
+                # self.log(presentation_request)
                 self.trusted_connection_ids.append(message["connection_id"])
+                self.trusted_hospitals.append(hospital)
         elif state == "request_received":
             log_status(
                 "#24 Query for credentials in the wallet that satisfy the proof request"
