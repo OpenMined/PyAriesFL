@@ -22,7 +22,8 @@ The coordinator then sends the updated model to the next hospital and waits for 
 Challenges we ran into
 
 We struggled with docker at times. We also planned to add a UI for visual explanation, but struggled with adapting the aries agents to a web server - this was completed. We then had issues with CORS, which we were unable to resolve in time.
-Accomplishments that we're proud of
+
+# Accomplishments that we're proud of
 
 We got to grips with the new hyperledger aries code base and cloud agent provided by the government of British Columbia. Building a complex ecosystem of issuers, verifiers and holders. We also built a federated machine learning model enabling learning to take place without data needing to leave it's original silo. We believe Hyperledger Aries can help solve the problem of secure communication between the coordinator and learners as well as enabling trust within decentralised machine learning systems.
 What we learned
@@ -47,8 +48,6 @@ One of the biggest unknows for us was whether the DIDComm protocol in aries coul
 # Submitted to
 
     Diffusion 2019
-    34 minutes to submit
-    Edit hackathon submission
 
 # Created by
 
