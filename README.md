@@ -71,7 +71,7 @@ A trusted source as the NHS Head Office issued the credentials to the participan
 
 The final federated trained model defends the researcher from malicious misuses such as model poisoning attacks, and in the same time, it is protecting the privacy of the participants since their raw data never left their premises.
 
-#How we built it
+# How we built it
 
 We created the secured communication channel using Hyperledger Aries. The DID of each entity is stored in a blockchain. The infrastructure is blockchain-agnostic.
 
