@@ -18,7 +18,7 @@ from torch.autograd import Variable
 
 
 #Read in Data
-train_df = pd.read_csv(str(sys.argv[1])+'.csv')
+train_df = pd.read_csv('data/'+str(sys.argv[1])+'.csv')
 
 ########## START DATA CLEANING ###############
 
@@ -149,7 +149,7 @@ y_test_data = torch.tensor(y_test_data).float()
 ########## END DATA CLEANING ###############
 
 # Pull in model
-model = torch.load("../model/untrained_model.pt")
+model = torch.load("model/untrained_model.pt")
 
 # Define model training scripts
 def train():
@@ -180,4 +180,4 @@ train()
 
 print("Loss of model when prediciting on validation set: ", (model(x_test_data) - y_test_data).sum())
 
-torch.save(model, "../model/trained_model.pt")
+torch.save(model, "model/trained_model.pt")
