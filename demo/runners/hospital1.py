@@ -5,11 +5,9 @@ import json
 import logging
 import os
 import sys
+import torch
+
 from urllib.parse import urlparse
-try:
-    from pip import main as pipmain
-except ImportError:
-    from pip._internal import main as pipmain
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa
 
@@ -46,21 +44,6 @@ class Hospital1Agent(DemoAgent):
         self.connection_id = None
         self._connection_ready = asyncio.Future()
         self.cred_state = {}
-
-        pipmain(['install', 'package-name'])
-
-
-        DATA_PATH = os.getcwd()+"/data"
-        try:
-            os.mkdir(DATA_PATH)
-        except OSError:
-            print ("Creation of the directory %s failed" % DATA_PATH)
-        else:
-            print ("Successfully created the directory %s " % DATA_PATH)
-
-        pipmain(['install', 'torch'])
-
-        import torch
 
     async def detect_connection(self):
         await self._connection_ready
