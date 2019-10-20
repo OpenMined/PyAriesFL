@@ -1,4 +1,5 @@
 from quart import Quart
+from quart_cors import cors
 import os
 import argparse
 import sys
@@ -26,6 +27,7 @@ LOGGER = logging.getLogger(__name__)
 def create_app(test_config=None):
     # create and configure the app
     app = Quart(__name__)
+    cors(app, allow_origin="*")
 
     parser = argparse.ArgumentParser(description="Runs a Coordinator demo agent.")
     parser.add_argument(
