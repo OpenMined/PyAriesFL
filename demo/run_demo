@@ -11,26 +11,36 @@ if [ "$AGENT" = "coordinator" ]; then
 	AGENT_MODULE="coordinator"
 	AGENT_PORT=8050
 	AGENT_PORT_RANGE=8050-8058
-elif [ "$AGENT" = "bob" ]; then
-	AGENT_MODULE="bob"
-	AGENT_PORT=8060
-	AGENT_PORT_RANGE=8060-8068
+	echo "Preparing agent image..."
+	docker build -q -t coordinator -f ../docker/Dockerfile.demo .. || exit 1
+
 elif [ "$AGENT" = "hospital1" ]; then
 	AGENT_MODULE="hospital1"
 	AGENT_PORT=8070
 	AGENT_PORT_RANGE=8070-8078
-elif [ "$AGENT" = "nhsheadoffice" ]; then
-	AGENT_MODULE="nhsheadoffice"
-	AGENT_PORT=8080
-	AGENT_PORT_RANGE=8080-8088
+	echo "Preparing agent image..."
+	docker build -q -t hospital1 -f ../docker/Dockerfile_hospital.demo --build-arg hospital_name="$AGENT" .. || exit 1
+
 elif [ "$AGENT" = "hospital2" ]; then
 	AGENT_MODULE="hospital2"
 	AGENT_PORT=8090
 	AGENT_PORT_RANGE=8090-8098
+	echo "Preparing agent image..."
+	docker build -q -t hospital2 -f ../docker/Dockerfile_hospital.demo --build-arg hospital_name="$AGENT" .. || exit 1
+
+elif [ "$AGENT" = "nhsheadoffice" ]; then
+	AGENT_MODULE="nhsheadoffice"
+	AGENT_PORT=8080
+	AGENT_PORT_RANGE=8080-8088
+	echo "Preparing agent image..."
+	docker build -q -t nhsheadoffice -f ../docker/Dockerfile.demo .. || exit 1
+
 elif [ "$AGENT" = "regulator" ]; then
 	AGENT_MODULE="regulator"
 	AGENT_PORT=8100
 	AGENT_PORT_RANGE=8100-8108
+	echo "Preparing agent image..."
+	docker build -q -t regulator -f ../docker/Dockerfile.demo .. || exit 1
 elif [ "$AGENT" = "hospital3" ]; then
 	AGENT_MODULE="hospital3"
 	AGENT_PORT=8110
@@ -47,9 +57,6 @@ else
 	echo "Please specify which agent you want to run. Choose from 'coordinator', 'hospital1', 'hospital2', 'hospital3', 'nhsheadoffice' or 'regulator'."
 	exit 1
 fi
-
-echo "Preparing agent image..."
-docker build -q -t faber-alice-demo -f ../docker/Dockerfile.demo .. || exit 1
 
 if [ -z "${PWD_HOST_FQDN}" ]; then
 	DOCKERHOST=`docker run --rm --net=host codenvy/che-ip`
