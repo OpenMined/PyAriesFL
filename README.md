@@ -1,103 +1,57 @@
-# Hyperledger Aries Cloud Agent - Python  <!-- omit in toc -->
+# Team-43
+Distributed Deep-learning DID-acts
 
-[![pypi releases](https://img.shields.io/pypi/v/aries_cloudagent)](https://pypi.org/project/aries-cloudagent/)
-[![CircleCI](https://circleci.com/gh/hyperledger/aries-cloudagent-python.svg?style=shield)](https://circleci.com/gh/hyperledger/aries-cloudagent-python)
-[![codecov](https://codecov.io/gh/hyperledger/aries-cloudagent-python/branch/master/graph/badge.svg)](https://codecov.io/gh/hyperledger/aries-cloudagent-python)
-[![Check Dependencies](https://snyk.io/test/github/hyperledger/aries-cloudagent-python/badge.svg)](https://snyk.io/test/github/hyperledger/aries-cloudagent-python?targetFile=requirements.txt)
 
-<!-- ![logo](/docs/assets/aries-cloudagent-python-logo-bw.png) -->
+# Inspiration
 
-> An easy to use Aries agent for building SSI services using any language that supports sending/receiving HTTP requests.
+We are PhD students focused on privacy-preserving methods and techniques. Diffusion allows us to experiment, build, learn and test technologies that are too new for academia, in a short amount of time. We have experience in our team of both Identity technologies and decentralised machine learning and wanted to see how we could combine these two disciplines. The hyperledger aries secure messaging capability recently demonstrated by BC Gov at a conference seemed an interesting place to start.
+What it does
 
-Hyperledger Aries Cloud Agent Python (ACA-Py) is a foundation for building self-sovereign identity (SSI) / decentralized identity services running in non-mobile environments using DIDcomm messaging, the did:peer DID method, and verifiable credentials. With ACA-Py, SSI developers can focus on building services using familiar web development technologies instead of trying to learn the nuts and bolts of low-level SDKs.
+Our project allows the participants to create a secure channel using DID communication. This channel can then be authenticated with relevant participants requesting credentials to ensure that the correct people are able to contribute to the learning, and reviece the trained model. Ie reduces the likelihood of a malicious learning or malicious researcher.
 
-As we create ACA-Py, we're also building resources so that developers with a wide-range of backgrounds can get productive with ACA-Py in a hurry. Checkout the [resources](#resources) section below and jump in.
+A trusted source as the NHS Head Office issued the credentials to the participants, and a regulatory authority granted the researcher's credentials. After the credentials validation from each side using the public DIDs, the researcher sends his model to each participant with confidence that they are legitimate. The participants train their raw data, and a secure aggregator summarizes their outputs before sent back to the researcher.
 
-The "cloud" in Aries Cloud Agent - Python does **NOT** mean that ACA-Py cannot be used as an edge agent. ACA-Py is suitable for use in any non-mobile agent scenario, including as an enterprise edge agent for
-issuing, verifying and holding verifiable credentials.
+The final federated trained model defends the researcher from malicious misuses such as model poisoning attacks, and in the same time, it is protecting the privacy of the participants since their raw data never left their premises.
+How we built it
 
-## Table of Contents <!-- omit in toc -->
+We created the secured communication channel using Hyperledger Aries. The DID of each entity is stored in a blockchain. The infrastructure is blockchain-agnostic.
 
-- [Background](#background)
-- [Install](#install)
-- [Usage](#usage)
-- [Security](#security)
-- [API](#api)
-- [Resources](#resources)
-  - [Quickstart](#quickstart)
-  - [Architectural Deep Dive](#architectural-deep-dive)
-  - [Getting Started Guide](#getting-started-guide)
-  - [Read the Docs](#read-the-docs)
-  - [What to Focus On?](#what-to-focus-on)
-- [Credit](#credit)
-- [Contributing](#contributing)
-- [License](#license)
+We gathered mental health data relating to a survey taken by developers in 2014 link. The dataset was federated into three batches; these three batches included in our three hospital containers, respectively. Our learning coordinator begins with an untrained model. When our learning protocol begins, the coordinator sends the untrained deep neural-network (DNN) to the first hospital, this hospital cleans its dataset, trains the DNN and sends it back to the coordinator once completed.
 
-## Background
+The coordinator then sends the updated model to the next hospital and waits for this hospital to perform the cleaning and training tasks. This process continues until each hospital has trained the model with its data. At the end of the training process, the researcher concludes with a model which trained over n batches, where n is the number of hospitals.
+Challenges we ran into
 
-Developing an ACA-Py-based application is pretty straight forward for those familiar with web development. An ACA-Py instance is always deployed with a paired "controller" application that provides the business logic for that ACA-Py agent. The controller receives webhook event notifications from its instance of ACA-Py and uses an HTTP API exposed by the ACA-Py instance to provide direction on how to respond to those events. No ACA-Py/Python development is needed--just deploy an ACA-Py instance from PyPi (examples available). The source of the business logic is your imagination. An interface to a legacy system? A user interface for a person? Custom code to implement a new service? You can build your controller in any language that supports making and receiving HTTP requests. Wait...that's every language!
+We struggled with docker at times. We also planned to add a UI for visual explanation, but struggled with adapting the aries agents to a web server - this was completed. We then had issues with CORS, which we were unable to resolve in time.
+Accomplishments that we're proud of
 
-ACA-Py currently supports "only" Hyperledger Indy's verifiable credentials scheme (which is pretty powerful). We are experimenting with adding support to ACA-Py for other DID Ledgers and verifiable credential schemes.
+We got to grips with the new hyperledger aries code base and cloud agent provided by the government of British Columbia. Building a complex ecosystem of issuers, verifiers and holders. We also built a federated machine learning model enabling learning to take place without data needing to leave it's original silo. We believe Hyperledger Aries can help solve the problem of secure communication between the coordinator and learners as well as enabling trust within decentralised machine learning systems.
+What we learned
 
-ACA-Py is built on the Aries concepts and features defined in the [Aries RFC](https://github.com/hyperledger/aries-rfcs) repository. [This document](https://github.com/hyperledger/aries-cloudagent-python/blob/master/SupportedRFCs.md) contains a (reasonably up to date) list of supported Aries RFCs by the current ACA-Py implementation.
+We explored the identity-credentials system in a complex real-world scenario, where researchers need to send their model to the participants to protect their privacy, but in the same time, they have to be protected against malicious unauthorized training.
+What's next for Distributed Deep-learning DID-acts
 
-## Install
+One of the biggest unknows for us was whether the DIDComm protocol in aries could support the type of messages required to be passed between partipants in federated machine learning. The next step for this project would be to work with the Hyperledger Aries Working group to define a aries rfc for a protocol specifically designed for this use case.
 
-ACA-Py can be run with docker without installation, or can be installed [from PyPi](https://pypi.org/project/aries-cloudagent/). Use the following command to install it locally:
+# Built With
 
-```bash
-pip install aries-cloudagent
-```
+    deep-learning
+    did
+    docker
+    federated-learning
+    flask
+    hyperledger-aries
+    hyperledger-indy
+    containerisation
+    python
 
-## Usage
+# Submitted to
 
-Instructions for running ACA-Py can be [found here](https://github.com/hyperledger/aries-cloudagent-python/blob/master/DevReadMe.md#running).
+    Diffusion 2019
+    34 minutes to submit
+    Edit hackathon submission
 
-## Security
+# Created by
 
-The administrative API exposed by the agent for the controller to use must be protected with an API key
-(using the `--admin-api-key` command line arg) or deliberately left unsecured using the
-`--admin-insecure-mode` command line arg. The latter should not be used other than in development if the API
-is not otherwise secured.
-
-## API
-
-A deployed instance of an ACA-Py agent assembles an API from the protocols loaded with the agent that is used by a controller application (written in any language) to control the behaviour of the agent. The controller can initiate agent actions such as issuing a credential, and can respond to agent events, such
-as requesting a proof after the DID Exchange process. Agent events are delivered to the controller as webhooks to a configured URL.
-
-## Resources
-
-### Quickstart
-
-If you are an experienced decentralized identity developer that knows Indy, are already familiar with the concepts behind Aries,  want to play with the code, and perhaps even start contributing to the project, an "install and go" page for developers can be found [here](https://github.com/hyperledger/aries-cloudagent-python/blob/master/DevReadMe.md).
-
-### Architectural Deep Dive
-
-The ACA-Py team presented an architectural deep dive webinar that can be viewed [here](https://zoom.us/recording/play/Pr-gdxAUVciy7MtPE9tkNAuSLT_Pl_NEYMeW2XxQRitjXtQajl3X5y7L_A1CCRee?autoplay=true&startTime=1563894122000). Slides from the webinar can be found [here](https://docs.google.com/presentation/d/1K7qiQkVi4n-lpJ3nUZY27OniUEM0c8HAIk4imCWCx5Q/edit#slide=id.g5d43fe05cc_0_77).
-
-### Getting Started Guide
-
-For everyone those new to SSI, Indy and Aries, we've created a [Getting Started Guide](https://github.com/hyperledger/aries-cloudagent-python/blob/master/docs/GettingStartedAriesDev/README.md) that will take you from knowing next to nothing about decentralized identity to developing Aries-based business apps and services in a hurry. Along the way, you'll run some early Indy apps, apps built on ACA-Py and developer-oriented demos for interacting with ACA-Py. The guide has a good table of contents so that you can skip the parts you already know.
-
-### Read the Docs
-
-The ACA-Py Python docstrings are used as the source of a [Read the Docs](https://aries-cloud-agent-python.readthedocs.io/en/latest/) code overview site. Want to review the
-modules that make up ACA-Py? This is the best place to go.
-
-### What to Focus On?
-
-Not sure where your focus should be? Building apps? Aries? Indy? Indy's Blockchain? Ursa? Here is a [document](https://github.com/hyperledger/aries-cloudagent-python/blob/master/docs/GettingStartedAriesDev/IndyAriesDevOptions.md) that goes through the technical stack to show how the projects fit together, so you can decide where you want to focus your efforts.
-
-## Credit
-
-The initial implementation of ACA-Py was developed by the Verifiable Organizations Network (VON) team based at the Province of British Columbia. To learn more about VON and what's happening with decentralized identity in British Columbia, please go to [https://vonx.io](https://vonx.io).
-
-## Contributing
-
-Pull requests are welcome! Please read our [contributions guide](https://github.com/hyperledger/aries-cloudagent-python/blob/master/CONTRIBUTING.md) and submit your PRs. We enforce [developer certificate of origin](https://developercertificate.org/) (DCO) commit signing. See guidance [here](https://github.com/apps/dco).
-
-We also welcome issues submitted about problems you encounter in using ACA-Py.
-
-## License
-
-[Apache License Version 2.0](https://github.com/hyperledger/aries-cloudagent-python/blob/master/LICENSE)
+    **Will Abramson** 
+    **Adam James Hall**
+    **Pavlos Papadopoulos**
