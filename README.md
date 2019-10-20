@@ -14,6 +14,9 @@ git clone https://github.com/diffusioncon/Team-43
 
 cd demo
 ```
+
+## Hospital gets verified by the NHS Trust.
+
 1) Start the NHS Trusted agent.
 ```
 LEDGER_URL=http://dev.bcovrin.vonx.io ./run_demo nhsheadoffice
@@ -26,6 +29,8 @@ LEDGER_URL=http://dev.bcovrin.vonx.io ./run_demo hospital1
 3) Use NHS's invitation URL to connect the hospital to it.
 
 4) Follow the on-screen menu to issue credentials from the NHS Trusted agent to the Hospital.
+
+## The Researcher gets accredited by the regulatory authority.
 
 5) Start the Coordinator.
 ```
@@ -41,6 +46,9 @@ LEDGER_URL=http://dev.bcovrin.vonx.io ./run_demo regulator
 7) Follow the on-screen menu on the coordinator (4) to connect to the regulator.
 
 8) Follow the on-screen menu to Issue a credential from the Regulator to the Coordinator.
+
+
+## The researcher validates the hospital's identity. The hospital validates the researcher's identity. The training procedure starts.
 
 9) Follow the on-screen menu on the Coordinator (3) to create New Invitation for the hospital.
 
