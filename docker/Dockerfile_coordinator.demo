@@ -17,9 +17,6 @@ ADD model/untrained_model.pt ./model/untrained_model.pt
 RUN pip3 install --no-cache-dir -e .
 
 #DEPENDENCIES FOR ML
-RUN pip3 install torch
-RUN pip3 install pandas
-RUN pip3 install numpy
 
 RUN mkdir demo
 

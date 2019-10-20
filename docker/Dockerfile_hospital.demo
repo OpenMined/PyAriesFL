@@ -17,14 +17,17 @@ ADD README.md ./
 ADD scripts ./scripts
 ADD setup.py ./
 ADD data/"$hospital_name".csv ./data/"$hospital_name".csv
+ADD data/hospital_learn.py ./data/hospital_learn.py
+
 
 RUN pip3 install --no-cache-dir -e .
 
 #DEPENDENCIES FOR ML
-RUN pip3 install torch
-RUN pip3 install pandas
 RUN pip3 install numpy
-
+RUN pip3 install pandas
+RUN pip3 install matplotlib
+RUN pip3 install seaborn
+RUN pip3 install torch
 
 RUN mkdir demo
 
