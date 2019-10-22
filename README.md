@@ -1,13 +1,17 @@
 # Team-43
 __Distributed Deep-learning DID-acts__
 
-# Guide
-
 This repo has been forked from Hyperledger Aries Cloud agent [link](https://github.com/hyperledger/aries-cloudagent-python) provided by British Columbia Government. 
 
 We have created a set of agents that can be run using docker to experiment with a federated deep learning scenario using didCOMM to pass secure messages between the participants - e.g. the ML model parameters. Furthermore the scenario explores using credentials so that participants can verify that who they are communicating with. In the example this is verifying a hospital is indeed a hospital and a researcher has been accredited by a regulator. However the credentials abnd issuers within this use case could be adapted to any ecosystem.
 
 The agents connect, by default, to the BC government development instance of Hyperledger Indy ledger [link](http://dev.bcovrin.vonx.io).
+
+
+
+# Guide
+
+![Full Aries Scenario](./images/initialidea.png)
 
 To run the scenario:
 
@@ -57,7 +61,7 @@ cd demo
 
 ## The researcher validates the hospital's credential. The hospital validates the researcher's accreditation. The training procedure starts.
 
-![Researcher and hospital verify respecitve credentials](./images/coordinator_and_hospital.png)
+![Researcher and hospital verify respective credentials](./images/coordinator_and_hospital.png)
 
 10) Follow the on-screen menu on the Coordinator (3) to create New Invitation for the hospital.
 
@@ -69,7 +73,7 @@ cd demo
 
 14) After the hospitall has been added to the coordinator's trusted list, can be start the training process by accepting the model from the coordinator, trains the model, and sends back the updated model (updated model parameters) to the coordinator. Afterwards, coordinator sends the new updated model to the next hospital to continue the training until the full training procedure has been completed.
 
-![Researcher coordinates federated learning](./images/Learning_distribution.png)
+![Researcher coordinates federated learning](./images/federated_learning.png)
 
 # Created by
 
