@@ -107,4 +107,4 @@ echo "Starting $AGENT..."
 $DOCKER run --name $AGENT --rm -it \
 	-p 0.0.0.0:$AGENT_PORT_RANGE:$AGENT_PORT_RANGE \
 	$DOCKER_ENV \
-	faber-alice-demo $AGENT_MODULE --port $AGENT_PORT $@
+	$AGENT $AGENT_MODULE --port $AGENT_PORT $@
