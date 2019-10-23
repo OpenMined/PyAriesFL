@@ -320,7 +320,15 @@ async def main(start_port: int, show_timing: bool = False):
                 )
 
             elif option == "2":
+                cwd = os.getcwd()
+
+                f = open(cwd + "/model/untrained_model.pt", "r")
+                log_msg("open file")
+
+                contents = f.read()
+                log_msg(str(contents))
                 msg = await prompt("Enter message: ")
+
                 await agent.admin_POST(
                     f"/connections/{agent.active_connection_id}/send-message", {"content": msg}
                 )
