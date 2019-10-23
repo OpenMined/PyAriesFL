@@ -196,9 +196,15 @@ class Hospital1Agent(DemoAgent):
 
     async def handle_basicmessages(self, message):
         cwd = os.getcwd()
-
-        f = open(cwd + "data/untrained_model.pt", "w+")
+        self.log("Open file")
+        f = open(cwd + "/model/untrained_model.pt", "w+")
         f.write(message["content"])
+        self.log("Import file")
+        from data.hospital_learn import hospital_learn
+        self.log("learning")
+
+        await hospital_learn()
+        self.log("Learnt")
 
         # train_process = await loop.run_in_executor(
         #     None, self._process, agent_args, my_env, loop

@@ -11,6 +11,18 @@ ADD requirements*.txt ./
 
 RUN pip3 install --no-cache-dir -r requirements.txt -r requirements.dev.txt
 
+
+
+#DEPENDENCIES FOR ML
+RUN pip3 install numpy
+RUN pip3 install pandas
+RUN pip3 install matplotlib
+RUN pip3 install seaborn
+RUN pip3 install torch
+
+RUN mkdir demo
+RUN mkdir model
+
 ADD aries_cloudagent ./aries_cloudagent
 ADD bin ./bin
 ADD README.md ./
@@ -22,15 +34,6 @@ ADD demo/sovrin-genesis.txt ./sovrin-genesis.txt
 
 
 RUN pip3 install --no-cache-dir -e .
-
-#DEPENDENCIES FOR ML
-RUN pip3 install numpy
-RUN pip3 install pandas
-RUN pip3 install matplotlib
-RUN pip3 install seaborn
-RUN pip3 install torch
-
-RUN mkdir demo
 
 # Add and install demo code
 ADD demo/requirements.txt ./demo/requirements.txt

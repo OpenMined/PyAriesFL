@@ -15,7 +15,11 @@ from sklearn.preprocessing import binarize, LabelEncoder, MinMaxScaler
 from torch import nn
 from torch import optim
 from torch.autograd import Variable
+import os
+import sys
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from demo.runners.support.utils import log_msg
 
 # Define model training scripts
 def train():
@@ -38,12 +42,12 @@ def train():
         # 5) change those weights
         opt.step()
 
-        # 6) print our progress
+        # 6) log_msg our progress
         if(iter%5000 == 0):
-            print("loss at epoch ", iter, ": ",loss.data)
+            log_msg("loss at epoch ", iter, ": ",loss.data)
 
 
-def hospital_learn():
+async def hospital_learn():
 
     #Read in Data
     train_df = pd.read_csv('data/data.csv')
@@ -80,12 +84,12 @@ def hospital_learn():
         elif feature in floatFeatures:
             train_df[feature] = train_df[feature].fillna(defaultFloat)
         else:
-            print('Error: Feature %s not recognized.' % feature)
+            log_msg('Error: Feature %s not recognized.' % feature)
 
     #clean 'Gender'
     #Slower case all columm's elements
     gender = train_df['Gender'].str.lower()
-    #print(gender)
+    #log_msg(gender)
 
     #Select unique elements
     gender = train_df['Gender'].unique()
@@ -181,6 +185,8 @@ def hospital_learn():
 
     train()
 
-    print("Loss of model when prediciting on validation set: ", (model(x_test_data) - y_test_data).sum())
+    log_msg("Loss of model when prediciting on validation set: ", (model(x_test_data) - y_test_data).sum())
 
     torch.save(model, "model/trained_model.pt")
+
+    return True
