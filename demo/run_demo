@@ -57,8 +57,7 @@ elif [ "$AGENT" = "hospital1_web" ]; then
 	AGENT_PORT_RANGE=8160-8170
 	docker build -q -t "$AGENT" -f ../docker/Dockerfile.demo .. || exit 1
 else
-	echo "Please specify which agent you want to run. Choose from 'coordinator', 'hospital1', 'bart_hospital', 'bridge_hospital', 'nhsheadoffice' or 'regulator'."
-	echo "Please specify which agent you want to run. Choose from 'coordinator', 'hospital1', 'bart_hospital', 'bridge_hospital', 'nhsheadoffice' or 'regulator'."
+	echo "Please specify which agent you want to run. Choose from 'coordinator', 'hospital1', 'hospital2', 'hospital3', 'nhsheadoffice' or 'regulator'."
 	exit 1
 fi
 

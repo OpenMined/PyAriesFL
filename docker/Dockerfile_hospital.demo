@@ -18,6 +18,7 @@ ADD scripts ./scripts
 ADD setup.py ./
 ADD data/"$hospital_name".csv ./data/"$hospital_name".csv
 ADD data/hospital_learn.py ./data/hospital_learn.py
+ADD demo/sovrin-genesis.txt ./sovrin-genesis.txt
 
 
 RUN pip3 install --no-cache-dir -e .

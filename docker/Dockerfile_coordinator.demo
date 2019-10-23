@@ -24,6 +24,8 @@ RUN mkdir demo
 ADD demo/requirements.txt ./demo/requirements.txt
 RUN pip3 install --no-cache-dir -r demo/requirements.txt
 
+ADD demo/sovrin-genesis.txt ./sovrin-genesis.txt
+
 ADD demo ./demo
 
 ENTRYPOINT ["/bin/bash", "-c", "python -m demo.runners.$@", "--"]

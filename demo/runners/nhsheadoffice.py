@@ -141,7 +141,7 @@ async def main(start_port: int, show_timing: bool = False):
             start_port, start_port + 1, genesis_data=genesis, timing=show_timing
         )
         await agent.listen_webhooks(start_port + 2)
-        await agent.register_did()
+        # await agent.register_did()
 
         log_msg("HEAD OFFICE DID: ", agent.did)
 
