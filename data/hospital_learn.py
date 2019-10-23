@@ -18,7 +18,7 @@ from torch.autograd import Variable
 
 
 #Read in Data
-train_df = pd.read_csv('data/'+str(sys.argv[1])+'.csv')
+train_df = pd.read_csv('data/data.csv')
 
 ########## START DATA CLEANING ###############
 
