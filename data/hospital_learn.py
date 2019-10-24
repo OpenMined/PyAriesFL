@@ -21,36 +21,17 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from demo.runners.support.utils import log_msg
 
-# Define model training scripts
-def train():
-    # Training Logic
-    opt = optim.SGD(params=model.parameters(),lr=0.1)
-    for iter in range(50000):
 
-        # 1) erase previous gradients (if they exist)
-        opt.zero_grad()
-
-        # 2) make a prediction
-        pred = model(x_train_data)
-
-        # 3) calculate how much we missed
-        loss = (((y_train_data - pred)**2).sum())/len(x_train_data)
-
-        # 4) figure out which weights caused us to miss
-        loss.backward()
-
-        # 5) change those weights
-        opt.step()
-
-        # 6) log_msg our progress
-        if(iter%5000 == 0):
-            log_msg("loss at epoch ", iter, ": ",loss.data)
 
 
 async def hospital_learn():
+    log_msg("HOSPITAL IS LEARNING")
+
 
     #Read in Data
     train_df = pd.read_csv('data/data.csv')
+
+    log_msg("HOSPITAL DATA", train_df)
 
     ########## START DATA CLEANING ###############
 
@@ -178,12 +159,49 @@ async def hospital_learn():
         y_test_data.append([data])
     y_test_data = torch.tensor(y_test_data).float()
 
+
+    log_msg("HOSPITAL DATA CLEAN")
+
     ########## END DATA CLEANING ###############
 
-    # Pull in model
-    model = torch.load("model/untrained_model.pt")
+    model_dir = os.getcwd() + "/model/untrained_model.pt"
 
-    train()
+    log_msg(model_dir)
+    # Pull in model
+    try:
+        model = torch.load(model_dir)
+    except Exception:
+        log_msg("HOSPITAL FAILED TO LOAD MODEL")
+        return False
+
+    log_msg("HOSPital MODEL LOADED")
+
+
+    # Training Logic
+    log_msg("HOSPITAL IS TRAINING")
+
+    opt = optim.SGD(params=model.parameters(), lr=0.1)
+    for iter in range(50000):
+
+        # 1) erase previous gradients (if they exist)
+        opt.zero_grad()
+        log_msg("TRAIN DATA", x_train_data)
+
+        # 2) make a prediction
+        pred = model(x_train_data)
+
+        # 3) calculate how much we missed
+        loss = (((y_train_data - pred) ** 2).sum()) / len(x_train_data)
+
+        # 4) figure out which weights caused us to miss
+        loss.backward()
+
+        # 5) change those weights
+        opt.step()
+
+        # 6) log_msg our progress
+        if (iter % 5000 == 0):
+            log_msg("loss at epoch ", iter, ": ", loss.data)
 
     log_msg("Loss of model when prediciting on validation set: ", (model(x_test_data) - y_test_data).sum())
 

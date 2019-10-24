@@ -6,6 +6,7 @@ import logging
 import os
 import sys
 import torch
+from data.hospital_learn import hospital_learn
 
 from urllib.parse import urlparse
 from uuid import uuid4
@@ -195,23 +196,29 @@ class Hospital1Agent(DemoAgent):
 
 
     async def handle_basicmessages(self, message):
+        self.log("Received message:", message["content"])
+
         cwd = os.getcwd()
         self.log("Open file")
-        f = open(cwd + "/model/untrained_model.pt", "w+")
-        f.write(message["content"])
+        try:
+            f = open(cwd + "/model/untrained_model.pt", "wb+")
+            byte_message = str.encode(message["content"])
+            f.write(byte_message)
+        except Exception as e:
+            self.log("Error writing file", e)
+            return
+
         self.log("Import file")
-        from data.hospital_learn import hospital_learn
         self.log("learning")
 
-        await hospital_learn()
-        self.log("Learnt")
+        learnt = await hospital_learn()
+        self.log("Learnt : ", learnt)
 
         # train_process = await loop.run_in_executor(
         #     None, self._process, agent_args, my_env, loop
         # )
         # self._process()
 
-        self.log("Received message:", message["content"])
 
 
 async def input_invitation(agent):
