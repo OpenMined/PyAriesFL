@@ -75,6 +75,10 @@ cd demo
 
 ![Researcher coordinates federated learning](./images/federated_learning.png)
 
+# The Ledger that has been used:
+
+LEDGER_URL=http://dev.bcovrin.vonx.io ./run_demo $AGENT_NAME
+
 # Created by
 
     Will Abramson
