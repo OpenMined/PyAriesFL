@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import torch
 import sys
+import traceback
+
 
 # prep
 from sklearn.model_selection import train_test_split
@@ -170,11 +172,13 @@ async def hospital_learn():
     # Pull in model
     try:
         model = torch.load(model_dir)
-    except Exception:
+    except Exception as e:
         log_msg("HOSPITAL FAILED TO LOAD MODEL")
+        log_msg("Exception Value: ",e)
+        log_msg("Traceback ",traceback.format_exc())
         return False
 
-    log_msg("HOSPital MODEL LOADED")
+    log_msg("HOSPITAL MODEL LOADED")
 
 
     # Training Logic
