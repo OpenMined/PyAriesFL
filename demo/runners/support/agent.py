@@ -154,7 +154,7 @@ class DemoAgent:
             ("--endpoint", self.endpoint),
             ("--label", self.label),
             "--auto-ping-connection",
-            "--auto-respond-messages",
+            # "--auto-respond-messages",
             ("--inbound-transport", "http", "0.0.0.0", str(self.http_port)),
             ("--outbound-transport", "http"),
             ("--admin", "0.0.0.0", str(self.admin_port)),

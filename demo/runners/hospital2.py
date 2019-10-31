@@ -195,6 +195,7 @@ class Hospital1Agent(DemoAgent):
 
 
     async def handle_basicmessages(self, message):
+
         self.log("Received message:", message["content"])
 
 

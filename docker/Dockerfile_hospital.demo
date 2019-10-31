@@ -12,15 +12,6 @@ ADD requirements*.txt ./
 RUN pip3 install --no-cache-dir -r requirements.txt -r requirements.dev.txt -r requirements.hospitals.txt
 
 
-
-#DEPENDENCIES FOR ML
-#RUN pip3 install numpy
-#RUN pip3 install pandas
-#RUN pip3 install matplotlib
-#RUN pip3 install seaborn
-#RUN pip3 install torch
-#RUN pip3 install sklearn
-
 RUN mkdir demo
 RUN mkdir model
 

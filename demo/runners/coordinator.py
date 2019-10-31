@@ -217,7 +217,6 @@ class CoordinatorAgent(DemoAgent):
     async def handle_basicmessages(self, message):
         from_id = message["connection_id"]
         self.log("Received message:", message["content"])
-        self.log(message)
 
 
 async def generate_new_connection(agent):
@@ -280,8 +279,11 @@ async def main(start_port: int, show_timing: bool = False):
         # await agent.detect_connection()
 
         async for option in prompt_loop(
-            "(1) Send Proof Request, "
-            + "(2) Send Message (3) New Connection (4) Input New Invitation Details (X) Exit? [1/2/3/4/X] "
+            "(1) Send Proof Request \n"
+            + "(2) Send Message \n(3) New Connection \n"
+            + "(4) Input New Invitation Details \n"
+            + "(5) List trusted connections \n(6) Initiate Learning \n"
+            + "(X) Exit? \n[1/2/3/4/5/6X] "
         ):
             if option is None or option in "xX":
                 break
@@ -327,11 +329,8 @@ async def main(start_port: int, show_timing: bool = False):
 
                 contents = f.read()
 
-                log_msg(str(contents))
-
-
                 await agent.admin_POST(
-                    f"/connections/{agent.active_connection_id}/send-message", {"content": str(contents)}
+                    f"/connections/{agent.active_connection_id}/send-message", {"content": contents.hex()}
                 )
             elif option == "3":
                 # handle new invitation
@@ -357,6 +356,29 @@ async def main(start_port: int, show_timing: bool = False):
                 # handle new invitation
                 log_status("Input new invitation details")
                 await input_invitation(agent)
+            elif option == "5":
+                # handle new invitation
+                log_status("List of Trusted Connections")
+                log_msg(agent.trusted_connection_ids)
+                log_msg(agent.trusted_hospitals)
+            elif option == "6":
+                # handle new invitation
+                log_status("Initiate Learning")
+                cwd = os.getcwd()
+                # TODO Need to get the updated file somehow
+                # Some sort of await until coordinator recieved message back
+                for connection_id in agent.trusted_connection_ids:
+
+                    f = open(cwd + "/model/untrained_model.pt", "rb")
+                    log_msg("open file")
+
+                    contents = f.read()
+
+                    await agent.admin_POST(
+                        f"/connections/{agent.active_connection_id}/send-message",
+                        {"content": contents.hex()}
+                    )
+
         if show_timing:
             timing = await agent.fetch_timing()
             if timing:

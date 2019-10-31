@@ -189,7 +189,7 @@ async def hospital_learn():
 
         # 1) erase previous gradients (if they exist)
         opt.zero_grad()
-        log_msg("TRAIN DATA", x_train_data)
+        # log_msg("TRAIN DATA", x_train_data)
 
         # 2) make a prediction
         pred = model(x_train_data)
