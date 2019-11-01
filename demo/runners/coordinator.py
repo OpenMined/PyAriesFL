@@ -29,6 +29,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class CoordinatorAgent(DemoAgent):
+
+
     def __init__(self, http_port: int, admin_port: int, **kwargs):
         super().__init__(
             "Coordinator Agent",
@@ -49,6 +51,10 @@ class CoordinatorAgent(DemoAgent):
         # TODO define a dict to hold credential attributes
         # based on credential_definition_id
         self.cred_attrs = {}
+        self.learning_ready = asyncio.Future()
+        self.current_learner_index = 0
+        self.current_model_file = os.getcwd() + "/model/untrained_model.pt"
+
 
     async def detect_connection(self):
         await self._connection_ready
@@ -215,8 +221,41 @@ class CoordinatorAgent(DemoAgent):
             )
 
     async def handle_basicmessages(self, message):
-        from_id = message["connection_id"]
-        self.log("Received message:", message["content"])
+
+        if message["connection_id"] == self.trusted_connection_ids[self.current_learner_index]:
+            self.log("Message from learner\n\n", message["content"])
+            self.current_learner_index += 1
+
+            if self.current_learner_index != len(self.trusted_connection_ids):
+                self.log("Still learning")
+                next_learner_connection_id = self.trusted_connection_ids[self.current_learner_index]
+
+                await self.admin_POST(
+                    f"/connections/{next_learner_connection_id}/send-message",
+                    {"content": message["content"]}
+                )
+            else:
+                self.log("Learning complete")
+                cwd = os.getcwd()
+                self.log("Open file")
+                try:
+                    f = open(cwd + "/model/trained_model.pt", "wb")
+                    # self.log(bytes.fromhex(message["content"]))
+                    byte_message = bytes.fromhex(message["content"])
+                    f.write(byte_message)
+                except Exception as e:
+                    self.log("Error writing file", e)
+                    return
+        else:
+            self.log("Basic message")
+            self.log("Received message:", message["content"])
+
+
+
+
+
+
+
 
 
 async def generate_new_connection(agent):
@@ -364,20 +403,22 @@ async def main(start_port: int, show_timing: bool = False):
             elif option == "6":
                 # handle new invitation
                 log_status("Initiate Learning")
-                cwd = os.getcwd()
                 # TODO Need to get the updated file somehow
                 # Some sort of await until coordinator recieved message back
-                for connection_id in agent.trusted_connection_ids:
 
-                    f = open(cwd + "/model/untrained_model.pt", "rb")
-                    log_msg("open file")
+                f = open(agent.current_model_file, "rb")
+                log_msg("open file")
 
-                    contents = f.read()
+                contents = f.read()
 
-                    await agent.admin_POST(
-                        f"/connections/{agent.active_connection_id}/send-message",
-                        {"content": contents.hex()}
-                    )
+                await agent.admin_POST(
+                    f"/connections/{agent.trusted_connection_ids[0]}/send-message",
+                    {"content": contents.hex()}
+                )
+
+
+
+
 
         if show_timing:
             timing = await agent.fetch_timing()
