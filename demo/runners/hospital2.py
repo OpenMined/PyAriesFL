@@ -208,6 +208,8 @@ class Hospital1Agent(DemoAgent):
             # self.log(bytes.fromhex(message["content"]))
             byte_message = bytes.fromhex(message["content"])
             f.write(byte_message)
+            f.close()
+
         except Exception as e:
             self.log("Error writing file", e)
             return
@@ -223,14 +225,13 @@ class Hospital1Agent(DemoAgent):
             trained_file = open(cwd + "/model/trained_model.pt", "rb")
             self.log("Trained file open")
             trained_model = trained_file.read()
-
-
+            trained_file.close()
         except:
             self.log("Unable to open trained model")
 
         connection_id = message["connection_id"]
 
-        log_msg("Connection ID", message["connection_id"])
+        log_msg("Trained model \n\n", trained_model)
         if trained_model:
             await self.admin_POST(
                 f"/connections/{connection_id}/send-message", {"content": trained_model.hex()}

@@ -13,6 +13,7 @@ from uuid import uuid4
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa
 
+from data.hospital_learn import hospital_learn
 from runners.support.agent import DemoAgent, default_genesis_txns
 from runners.support.utils import (
     log_json,
@@ -193,9 +194,47 @@ class Hospital1Agent(DemoAgent):
             )
             self.log("Proof =", proof["verified"])
 
-
     async def handle_basicmessages(self, message):
-        self.log("Received message:", message["content"])
+
+        self.log(message)
+        # self.log("Received message:", message["content"])
+
+        # if message["type"] == "train":
+        cwd = os.getcwd()
+        self.log("Open file")
+        try:
+            f = open(cwd + "/model/untrained_model.pt", "wb")
+            # self.log(bytes.fromhex(message["content"]))
+            byte_message = bytes.fromhex(message["content"])
+            f.write(byte_message)
+            f.close()
+
+        except Exception as e:
+            self.log("Error writing file", e)
+            return
+
+        self.log("Import file")
+        self.log("learning")
+
+        learnt = await hospital_learn()
+        self.log("Learnt : ", learnt)
+
+        trained_model = None
+        try:
+            trained_file = open(cwd + "/model/trained_model.pt", "rb")
+            self.log("Trained file open")
+            trained_model = trained_file.read()
+            trained_file.close()
+        except:
+            self.log("Unable to open trained model")
+
+        connection_id = message["connection_id"]
+
+        log_msg("Trained model \n\n", trained_model)
+        if trained_model:
+            await self.admin_POST(
+                f"/connections/{connection_id}/send-message", {"content": trained_model.hex()}
+            )
 
 
 async def input_invitation(agent):

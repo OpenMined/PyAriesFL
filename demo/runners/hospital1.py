@@ -203,10 +203,12 @@ class Hospital1Agent(DemoAgent):
         cwd = os.getcwd()
         self.log("Open file")
         try:
-            f = open(cwd + "/model/untrained_model.pt", "wb")
+            f = open(cwd + "/model/untrained_model.pt", "wb+")
             # self.log(bytes.fromhex(message["content"]))
             byte_message = bytes.fromhex(message["content"])
             f.write(byte_message)
+            f.close()
+
         except Exception as e:
             self.log("Error writing file", e)
             return
@@ -222,7 +224,7 @@ class Hospital1Agent(DemoAgent):
             trained_file = open(cwd + "/model/trained_model.pt", "rb")
             self.log("Trained file open")
             trained_model = trained_file.read()
-
+            trained_file.close()
         except:
             self.log("Unable to open trained model")
 

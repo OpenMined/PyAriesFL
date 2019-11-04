@@ -221,6 +221,7 @@ class CoordinatorAgent(DemoAgent):
             )
 
     async def handle_basicmessages(self, message):
+        cwd = os.getcwd()
 
         if message["connection_id"] == self.trusted_connection_ids[self.current_learner_index]:
             self.log("Message from learner\n\n", message["content"])
@@ -228,21 +229,30 @@ class CoordinatorAgent(DemoAgent):
 
             if self.current_learner_index != len(self.trusted_connection_ids):
                 self.log("Still learning")
+                try:
+                    f = open(cwd + "/model/part_trained_" + str(self.current_learner_index) + ".pt", "wb+")
+                    byte_message = bytes.fromhex(message["content"])
+                    f.write(byte_message)
+                    f.close()
+                except Exception as e:
+                    self.log("Error writing file", e)
+                    return
+                # msg = await prompt("Continue Learning? Y/N ")
                 next_learner_connection_id = self.trusted_connection_ids[self.current_learner_index]
-
+                self.log("Continue Learning", next_learner_connection_id)
                 await self.admin_POST(
                     f"/connections/{next_learner_connection_id}/send-message",
                     {"content": message["content"]}
                 )
             else:
                 self.log("Learning complete")
-                cwd = os.getcwd()
                 self.log("Open file")
                 try:
-                    f = open(cwd + "/model/trained_model.pt", "wb")
+                    f = open(cwd + "/model/trained_model.pt", "wb+")
                     # self.log(bytes.fromhex(message["content"]))
                     byte_message = bytes.fromhex(message["content"])
                     f.write(byte_message)
+                    f.close()
                 except Exception as e:
                     self.log("Error writing file", e)
                     return
@@ -410,6 +420,7 @@ async def main(start_port: int, show_timing: bool = False):
                 log_msg("open file")
 
                 contents = f.read()
+                f.close()
 
                 await agent.admin_POST(
                     f"/connections/{agent.trusted_connection_ids[0]}/send-message",
