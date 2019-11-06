@@ -5,6 +5,7 @@ shopt -s nocasematch
 cd $(dirname $0)
 
 AGENT="$1"
+AGENT_NAME="$2"
 shift
 
 if [ "$AGENT" = "coordinator" ]; then
@@ -13,38 +14,36 @@ if [ "$AGENT" = "coordinator" ]; then
 	AGENT_PORT_RANGE=8050-8058
 	echo "Preparing agent image..."
 	docker build -q -t "$AGENT" -f ../docker/Dockerfile_coordinator.demo .. || exit 1
-
 elif [ "$AGENT" = "hospital1" ]; then
-	AGENT_MODULE="hospital1"
+	AGENT_MODULE="hospital"
 	AGENT_PORT=8070
 	AGENT_PORT_RANGE=8070-8078
 	echo "Preparing agent image..."
-	docker build -q -t "$AGENT" -f ../docker/Dockerfile_hospital.demo --build-arg hospital_name="$AGENT" .. || exit 1
+	docker build -q -t "$AGENT" -f ../docker/Dockerfile_hospital.demo --build-arg data_file="$AGENT" --build-arg hospital_name="St Thomas's Hospital" .. || exit 1
 
 elif [ "$AGENT" = "hospital2" ]; then
-	AGENT_MODULE="hospital2"
+	AGENT_MODULE="hospital"
 	AGENT_PORT=8090
 	AGENT_PORT_RANGE=8090-8098
 	echo "Preparing agent image..."
-	docker build -q -t "$AGENT" -f ../docker/Dockerfile_hospital.demo --build-arg hospital_name="$AGENT" .. || exit 1
-
+	docker build -q -t "$AGENT" -f ../docker/Dockerfile_hospital.demo --build-arg data_file="$AGENT" --build-arg hospital_name="St Bartholomew's Hospital" .. || exit 1
+elif [ "$AGENT" = "hospital3" ]; then
+	AGENT_MODULE="hospital"
+	AGENT_PORT=8110
+	AGENT_PORT_RANGE=8110-8118
+    echo "Preparing agent image..."
+	docker build -q -t "$AGENT" -f ../docker/Dockerfile_hospital.demo --build-arg data_file="$AGENT" --build-arg hospital_name="London Bridge Hospital" .. || exit 1
 elif [ "$AGENT" = "nhsheadoffice" ]; then
 	AGENT_MODULE="nhsheadoffice"
 	AGENT_PORT=8080
 	AGENT_PORT_RANGE=8080-8088
 	echo "Preparing agent image..."
 	docker build -q -t "$AGENT" -f ../docker/Dockerfile.demo .. || exit 1
-
 elif [ "$AGENT" = "regulator" ]; then
 	AGENT_MODULE="regulator"
 	AGENT_PORT=8100
 	AGENT_PORT_RANGE=8100-8108
 	echo "Preparing agent image..."
-	docker build -q -t "$AGENT" -f ../docker/Dockerfile.demo .. || exit 1
-elif [ "$AGENT" = "hospital3" ]; then
-	AGENT_MODULE="hospital3"
-	AGENT_PORT=8110
-	AGENT_PORT_RANGE=8110-8118
 	docker build -q -t "$AGENT" -f ../docker/Dockerfile.demo .. || exit 1
 elif [ "$AGENT" = "coordinator_server" ]; then
 	AGENT_MODULE="coordinator_server"

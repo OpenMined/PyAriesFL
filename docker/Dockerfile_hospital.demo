@@ -1,10 +1,12 @@
 FROM bcgovimages/von-image:py36-1.11-1
 
 ARG hospital_name
+ARG data_file
 
 RUN echo "Hello $hospital_name"
 
 ENV ENABLE_PTVSD 0
+ENV HOSPITAL_NAME $hospital_name
 
 # Add and install Indy Agent code
 ADD requirements*.txt ./
@@ -20,7 +22,7 @@ ADD bin ./bin
 ADD README.md ./
 ADD scripts ./scripts
 ADD setup.py ./
-ADD data/"$hospital_name".csv ./data/data.csv
+ADD data/"$data_file".csv ./data/data.csv
 ADD data/hospital_learn.py ./data/hospital_learn.py
 ADD demo/sovrin-genesis.txt ./sovrin-genesis.txt
 
