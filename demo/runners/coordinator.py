@@ -51,7 +51,7 @@ class CoordinatorAgent(DemoAgent):
         # TODO define a dict to hold credential attributes
         # based on credential_definition_id
         self.cred_attrs = {}
-        self.learning_ready = asyncio.Future()
+        self.learning_complete = asyncio.Future()
         self.current_learner_index = 0
         self.current_model_file = os.getcwd() + "/model/untrained_model.pt"
 
@@ -246,16 +246,19 @@ class CoordinatorAgent(DemoAgent):
                 )
             else:
                 self.log("Learning complete")
-                self.log("Open file")
                 try:
                     f = open(cwd + "/model/trained_model.pt", "wb+")
                     # self.log(bytes.fromhex(message["content"]))
                     byte_message = bytes.fromhex(message["content"])
+
                     f.write(byte_message)
                     f.close()
                 except Exception as e:
                     self.log("Error writing file", e)
                     return
+                self.learning_complete.done()
+                self.learning_complete.result(True)
+
         else:
             self.log("Basic message")
             self.log("Received message:", message["content"])
@@ -329,10 +332,12 @@ async def main(start_port: int, show_timing: bool = False):
 
         async for option in prompt_loop(
             "(1) Send Proof Request \n"
-            + "(2) Send Message \n(3) New Connection \n"
-            + "(4) Input New Invitation Details \n"
-            + "(5) List trusted connections \n(6) Initiate Learning \n"
-            + "(X) Exit? \n[1/2/3/4/5/6X] "
+            + "(2) Create New Invitation \n"
+            + "(3) Input New Invitation Details \n"
+            + "(4) List trusted connections \n"
+            + "(5) Initiate Learning \n"
+            + "(6) Reset trusted connections \n"
+            + "(X) Exit? \n[1/2/3/4/5/6/X] "
         ):
             if option is None or option in "xX":
                 break
@@ -369,19 +374,7 @@ async def main(start_port: int, show_timing: bool = False):
                 await agent.admin_POST(
                     "/present-proof/send-request", proof_request_web_request
                 )
-
             elif option == "2":
-                cwd = os.getcwd()
-
-                f = open(cwd + "/model/untrained_model.pt", "rb")
-                log_msg("open file")
-
-                contents = f.read()
-
-                await agent.admin_POST(
-                    f"/connections/{agent.active_connection_id}/send-message", {"content": contents.hex()}
-                )
-            elif option == "3":
                 # handle new invitation
                 with log_timer("Generate invitation duration:"):
                     # Generate an invitation
@@ -401,16 +394,16 @@ async def main(start_port: int, show_timing: bool = False):
 
                 log_msg("Waiting for connection...")
                 await agent.detect_connection()
-            elif option == "4":
+            elif option == "3":
                 # handle new invitation
                 log_status("Input new invitation details")
                 await input_invitation(agent)
-            elif option == "5":
+            elif option == "4":
                 # handle new invitation
                 log_status("List of Trusted Connections")
                 log_msg(agent.trusted_connection_ids)
                 log_msg(agent.trusted_hospitals)
-            elif option == "6":
+            elif option == "5":
                 # handle new invitation
                 log_status("Initiate Learning")
                 # TODO Need to get the updated file somehow
@@ -426,6 +419,12 @@ async def main(start_port: int, show_timing: bool = False):
                     f"/connections/{agent.trusted_connection_ids[0]}/send-message",
                     {"content": contents.hex()}
                 )
+                await agent.learning_complete
+            elif option == "6":
+                # handle new invitation
+                log_status("Reset trusted connection list")
+                agent.trusted_connection_ids = []
+                agent.trusted_hospitals = []
 
 
 

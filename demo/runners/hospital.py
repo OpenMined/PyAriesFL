@@ -6,6 +6,7 @@ import logging
 import os
 import sys
 import torch
+from data.hospital_learn import hospital_learn
 
 from urllib.parse import urlparse
 from uuid import uuid4
@@ -13,7 +14,6 @@ from uuid import uuid4
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa
 
-from data.hospital_learn import hospital_learn
 from runners.support.agent import DemoAgent, default_genesis_txns
 from runners.support.utils import (
     log_json,
@@ -28,14 +28,16 @@ from runners.support.utils import (
 
 LOGGER = logging.getLogger(__name__)
 
+HOSPITAL_NAME = os.getenv("HOSPITAL_NAME")
+
 
 class Hospital1Agent(DemoAgent):
     def __init__(self, http_port: int, admin_port: int, **kwargs):
         super().__init__(
-            "St Bartholomew's Hospital Agent",
+            HOSPITAL_NAME + " Agent",
             http_port,
             admin_port,
-            prefix="St Bartholomew's",
+            prefix=HOSPITAL_NAME,
             extra_args=[
                 "--auto-accept-invites",
                 "--auto-accept-requests",
@@ -44,11 +46,12 @@ class Hospital1Agent(DemoAgent):
             seed=None,
             **kwargs,
         )
-        self.hospital_name = "St Bartholomew's Hospital Agent"
+        self.hospital_name = HOSPITAL_NAME
         self.regulator_did = "FEgQXGPN7gpbPqAU65weBT"
         self.connection_id = None
         self._connection_ready = asyncio.Future()
         self.cred_state = {}
+        self.trusted_researcher_connection_ids = []
 
     async def detect_connection(self):
         await self._connection_ready
@@ -192,49 +195,56 @@ class Hospital1Agent(DemoAgent):
                 f"/present-proof/records/{presentation_exchange_id}/"
                 "verify-presentation"
             )
-            self.log("Proof =", proof["verified"])
+            if proof["verified"]:
+                self.log("Researcher is verified")
+                self.trusted_researcher_connection_ids.append(message["connection_id"])
+
 
     async def handle_basicmessages(self, message):
-
         self.log(message)
         # self.log("Received message:", message["content"])
 
-        # if message["type"] == "train":
-        cwd = os.getcwd()
-        self.log("Open file")
-        try:
-            f = open(cwd + "/model/untrained_model.pt", "wb")
-            # self.log(bytes.fromhex(message["content"]))
-            byte_message = bytes.fromhex(message["content"])
-            f.write(byte_message)
-            f.close()
+        if message["connection_id"] in self.trusted_researcher_connection_ids:
+            self.log("Research is trusted", message["connection_id"])
+            cwd = os.getcwd()
+            self.log("Open file")
+            try:
+                f = open(cwd + "/model/untrained_model.pt", "wb+")
+                # self.log(bytes.fromhex(message["content"]))
+                byte_message = bytes.fromhex(message["content"])
+                f.write(byte_message)
+                f.close()
 
-        except Exception as e:
-            self.log("Error writing file", e)
-            return
+            except Exception as e:
+                self.log("Error writing file", e)
+                return
 
-        self.log("Import file")
-        self.log("learning")
+            self.log("Import file")
+            self.log("learning")
 
-        learnt = await hospital_learn()
-        self.log("Learnt : ", learnt)
+            learnt = await hospital_learn()
+            self.log("Learnt : ", learnt)
 
-        trained_model = None
-        try:
-            trained_file = open(cwd + "/model/trained_model.pt", "rb")
-            self.log("Trained file open")
-            trained_model = trained_file.read()
-            trained_file.close()
-        except:
-            self.log("Unable to open trained model")
+            trained_model = None
+            try:
+                trained_file = open(cwd + "/model/trained_model.pt", "rb")
+                self.log("Trained file open")
+                trained_model = trained_file.read()
+                trained_file.close()
+            except:
+                self.log("Unable to open trained model")
 
-        connection_id = message["connection_id"]
+            connection_id = message["connection_id"]
 
-        log_msg("Trained model \n\n", trained_model)
-        if trained_model:
-            await self.admin_POST(
-                f"/connections/{connection_id}/send-message", {"content": trained_model.hex()}
-            )
+            log_msg("Connection ID", message["connection_id"])
+            if trained_model:
+                await self.admin_POST(
+                    f"/connections/{connection_id}/send-message", {"content": trained_model.hex()}
+                )
+        else:
+            self.log("Untrusted Researcher - Must first authenticate as being certified by Regulator")
+
+
 
 
 async def input_invitation(agent):
@@ -300,22 +310,22 @@ async def main(start_port: int, show_timing: bool = False):
         await input_invitation(agent)
 
         async for option in prompt_loop(
-            "(3) Send Message (4) Input New Invitation (5) Send Proof Request to the Issuer (X) Exit? [3/4/5/X]: "
+            "(1) Send Message (2) Input New Invitation (3) Request Proof of Certified Researcher (X) Exit? [1/2/3/X]: "
         ):
             if option is None or option in "xX":
                 break
-            elif option == "3":
+            elif option == "1":
                 msg = await prompt("Enter message: ")
                 if msg:
                     await agent.admin_POST(
                         f"/connections/{agent.connection_id}/send-message",
                         {"content": msg},
                     )
-            elif option == "4":
+            elif option == "2":
                 # handle new invitation
                 log_status("Input new invitation details")
                 await input_invitation(agent)
-            elif option == "5":
+            elif option == "3":
                 log_status("#20 Request proof of Research Certification")
                 req_attrs = [
                     {"name": "date", "restrictions": [{"issuer_did": agent.regulator_did}]},

@@ -1,5 +1,4 @@
-# Team-43
-__Distributed Deep-learning DID-acts__
+# Distributed Deep-learning DID-acts
 
 This repo has been forked from Hyperledger Aries Cloud agent [link](https://github.com/hyperledger/aries-cloudagent-python) provided by British Columbia Government.
 
