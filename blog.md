@@ -11,7 +11,7 @@ Our team was composed of three PhD researchers; Will, Pavlos and Adam. We specia
 
 We chose to focus on Hyperledger Aries to provide the identity capabilities required for our project, specifically we built on the [aries-cloudagent-python code](https://github.com/hyperledger/aries-cloudagent-python). Aries was spun out of the Hyperledger Indy codebase early 2019 to separate out the ledger-based code from what is often termed as agent-based code. Hyperledger Aries states its purpose as, “Hyperledger Aries provides a shared, reusable, inter-operable toolkit designed for initiatives and solutions focused on creating, transmitting and storing verifiable digital credentials”. Aries aims to be ledger agnostic, so while it currently only supports Hyperledger Indy, it is being designed in such a way to enable Aries agents support multiple pluggable ledgers in the future.
 
-One of the most interesting features of this new wave of identity innovation is the ability to create unique pairwise Decentralised Identifier connections between agents, otherwise known as [Peer DIDs](https://openssi.github.io/peer-did-method-spec/index.html). A specification for these identifiers is under development. This adds both privacy and security. An agent is able to establish connections with others by providing a different unique Peer DID which they can cryptographically authenticate as controlling. Once a connection is established, a protocol supported by Aries [DIDComm](https://github.com/hyperledger/aries-rfcs/tree/master/concepts/0005-didcomm) enables secure, encrypted communication between agents. This can be used for sending messages as well as presentation of proofs and receiving Verifiable Credentials. It is our belief that Peer DIDs and the secure communication channels they enable will become a foundational building block for the next generation of digital innovation.
+One of the most interesting features of this new wave of identity innovation is the ability to create unique pairwise Decentralised Identifier connections between agents, otherwise known as [Peer DIDs](https://openssi.github.io/peer-did-method-spec/index.html). A specification for these identifiers is under development. An agent is able to establish connections with others by providing a different unique Peer DID which they can cryptographically authenticate as controlling, this adds both privacy and security. Once a connection is established, the Aries protocol [DIDComm](https://github.com/hyperledger/aries-rfcs/tree/master/concepts/0005-didcomm) enables secure, encrypted communication between agents. This can be used for sending messages as well as presentation of proofs and receiving Verifiable Credentials. It is our belief that Peer DIDs and the secure communication channels they enable will become a foundational building block for the next generation of digital innovation.
 
 
 ## Distributed Machine-Learning
@@ -38,13 +38,15 @@ We aimed to build a basic federated learning example between Hyperledger Aries a
 This was used to facilitate the authorisation of training participants and Coordinators. A data scientist who would like to train a model is given credentials by an industry watchdog, who in a real world scenario could audit the model and research purpose. Meanwhile, a hospital in possession of private health data could be issued with credentials by an NHS authority. Credential schema and the DIDs of credential issuers are written to a public ledger - we used the [development ledger provided by the government of British Columbia] (http://dev.bcovrin.vonx.io/) in our example. When issuing a credential, the issuer creates a signature on a set of attributes for a given schema using a private key associated with their public DID through a DID document. Included in these attributes is a blinded link secret for the entity receiving the credential - this enables the credential to be tied to a particular entity without the issuer needing to know this secret value.
 
 When verifying the proof of a credential, the verifier needs to check a number of things.
-1. The DID of the issuer can be resolved on the public ledger to a DID document. This document must contain a public key which can be used to verify the integrity of the credential.
+1. The DID of the issuer can be resolved on the public ledger to a DID document. This document should contain a public key which can be used to verify the integrity of the credential.
 2. The entity presenting the credential does indeed know the link secret that was blindly signed by the issuer. The holder creates a zero knowledge proof attesting to this.
-3. That the issuing DID had the authority to issue this kind of credential. The signature alone only proves integrity, but if the verifier accepts hospital credentials from any issuers then it would be easy to obtain a credential stating I am a hospital when I am not. For our example we hardcode the the public DIDs into the relevant verifiers. In a production system at scale this might be done through a registry, supported by a governance framework - a legal document outlining the rules of the ecosystem.
+3. That the issuing DID had the authority to issue this kind of credential. The signature alone only proves integrity, but if the verifier accepts hospital credentials from any issuers then it would be easy to obtain fraudulent credentials - anyone with a public DID could issue one. For the demo we hardcode the the public DIDs into the relevant verifiers. In a production system at scale this might be done through a registry, supported by a governance framework - a legal document outlining the rules of the ecosystem.
 4. Finally, the verifier needs to check that the attributes in the valid credential meet the criteria for authorisation in the system. For this simple usecase, simply proof of the correct credential is deemed acceptable.
 5. Not included in this example, but in general a verifier would need to additionally check that the credential has not been revoked by the issuer. They would do this by checking against a revocation registry stored on the public ledger.
 
 Any entity with a verifiable credential from the trusted issuers in the credential ecosystem is capable of presenting a proof of this credential across a pairwise peer-to-peer DID connection. Using this, authorised parties are able to mutually authenticate each other as trusted entities. In the proposed ecosystem, this allowed agents to generate a trusted communication channel. Across this channel the communication of model parameters for federated-learning stored in a torch file took place.
+
+![Establish Trusted Connection](./figures/trusted_connection.png)
 
 In order to implement Vanilla FL, we split our original data-set into 4 partitions, three training-sets and one validation-set. This data was loaded into three distinct hospital agents as they were containerised from dockerfiles. Each hospital also loaded in data-cleaning and training logic to be used on data and models respectively. On the other hand, our training Coordinator docker agent loaded in the untrained model parameters during the containerisation process. Once the container was initialised, the Coordinator created a connection url which was shared with participating hospitals. This creates a pairwise DID connection between the hospital and the coordinator - they generate and share unique private peer DIDs with DID Documents containing an endpoint for secure communication. It is worth pointing out that though this connection is secure, it is not necessarily trusted. All the parties know about the other is that they are in control of the identifier they provided. In order to build trust across this connection the parties need to prove aspects about themselves. A Hospital proves they are a hospital to a coordinator by proving they are in possession of a Credential issued by the NHS authority. Likewise the Research Coordinator does the same with a research credential. Once this handshake has taken place, both parties in the connection know they can trust the other for the specific use case of Vanilla FL. Therefor, the coordinator is now willing to share the model with the hospital and the hospital is willing to train the model on it's private data and return the trained model to the coordinator.
 
@@ -55,25 +57,9 @@ This amalgamation of Aries and FL allowed us to mitigate some existing constrain
 
 With trusted credentials baked into the communications protocols, agents would not be capable of participating in training without having been approved by whatever governing bodies have been deemed appropriate. This makes the participation of malicious entities far more difficult as they will first have to get around industry gate-keepers.
 
-## Challenges
-
-One of the biggest unknowns to us was whether we could use the quite primitive DIDComm implementation in the aries-cloudagent-python code base to communicate a FL model file. Currently just designed to send basic text messages. The idea being, the coordinator has an untrained model file, it reads this in as bytes then communicates these bytes across DIDComm to a hospital. The hospital then writes this to file, trains the model using it's private data then communicates the trained model file back to the coordinator. We ran into some issues when trying to encode the file to string, but eventually managed to get around this by converting the bytes to a hex string and sending this.
-
 ## Running the demo
 
-The demo we created has code for a number of agents described. All agent code can be found inside the demo folder of the repo. It is worth pointing out that our repo was forked from the aries-cloudagent-python repo and contains the full code base for running agents. Each file we created, e.g. hospital1, runs an instance of the aries-cloudagent and defines the business logic for the particular agent.
-
-To go through the full demo run through the following stages:
-
-### Hospital agents get credentialed by the head office
-
-![Trust to Hosptial](./figures/trust_to_hospital.png)
-
-1. In separate terminals initialise the docker containers for the nhsheadoffice and hosptials1 to 3 - e.g. ./demo/run_demo nhsheadoffice
-
-
-
-
+Instructions to run the demo can be found in our [repo](https://github.com/blockpass-identity-lab/diffusion2019).
 
 
 ## Conclusion

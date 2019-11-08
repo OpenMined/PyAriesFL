@@ -28,49 +28,55 @@ cd demo
 ```
 ./run_demo nhsheadoffice
 ```
-2) Start one of the hospitals.
+2) Start each of the hospitals in separate terminals.
 ```
-./run_demo hospital1
+./run_demo hospital1(2,3)
 ```
-3) Use NHS's invitation URL to connect the hospital to it.
+3) Copy NHS's invitation URL into the hospitals terminal to establish pairwise DID connection.
 
 4) Trust requests proof of hospitals name (Self attested)
 
 5) NHS Trust issue verified hospital credential to the Hospital.
 
+6) Repeat for each hospital
+
 ## The Researcher gets accredited by the regulatory authority.
 
 ![Researcher accreditation](./figures/regulator_to_coordinator.png)
 
-6) Start the Coordinator.
+7) Start the Coordinator.
 ```
 ./run_demo coordinator
 ```
 
-7) Start the regulator.
+8) Start the regulator.
 
 ```
 ./run_demo regulator
 ```
 
-8) Follow the on-screen menu on the coordinator (4) to input connection url from the regulator.
+9) Follow the on-screen menu on the coordinator (3) to input connection url from the regulator.
 
-9) Follow the on-screen menu to Issue a credential from the Regulator to the Coordinator.
+10) Follow the on-screen menu to Issue a credential from the Regulator to the Coordinator.
 
 
 ## The researcher validates the hospital's credential. The hospital validates the researcher's accreditation. The training procedure starts.
 
-![Researcher and hospital verify respective credentials](./figures/coordinator_and_hospital.png)
+![Researcher and hospital verify respective credentials](./figures/trusted_connection.png)
 
-10) Follow the on-screen menu on the Coordinator (3) to create New Invitation for the hospital.
+11) Follow the on-screen menu on the Coordinator (2) to create New Invitation for the hospital.
 
-11) Follow the on-screen menu in the hospital terminal to accept the new invitation link from the coordinator, and connect to it.
+12) Follow the on-screen menu in the hospital terminal to accept the new invitation link from the coordinator, and connect to it.
 
-12) Follow the on-screen menu so the coordinator can check the hospital's credentials. If proof is valid, the coordinator adds this hospital to the list of the trusted connections.
+13) Follow the on-screen menu (1) so the coordinator can check the hospital's credentials. If proof is valid, the coordinator adds this hospital to the list of the trusted connections.
 
-13) Follow the on-screen menu to check from the hospital terminal, the coordinator's credentials.
+14) Follow the on-screen menu (3) in the hospital to request proof that the coordinator has been regulated. If so add to list of trusted connection.
 
-14) After the hospitall has been added to the coordinator's trusted list, can be start the training process by accepting the model from the coordinator, trains the model, and sends back the updated model (updated model parameters) to the coordinator. Afterwards, coordinator sends the new updated model to the next hospital to continue the training until the full training procedure has been completed.
+15) Either add another trusted connection between a new hospital and current researcher
+ 
+or..
+
+16) In the coordinator terminal initiate training process by accepting the model from the coordinator, trains the model, and sends back the updated model (updated model parameters) to the coordinator. Afterwards, coordinator sends the new updated model to the next hospital to continue the training until the full training procedure has been completed.
 
 ![Researcher coordinates federated learning](./figures/federated_learning.png)
 
