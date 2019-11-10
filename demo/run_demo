@@ -55,6 +55,12 @@ elif [ "$AGENT" = "hospital1_web" ]; then
 	AGENT_PORT=8160
 	AGENT_PORT_RANGE=8160-8170
 	docker build -q -t "$AGENT" -f ../docker/Dockerfile.demo .. || exit 1
+elif [ "$AGENT" = "coordinator_validator" ]; then
+	AGENT_MODULE="coordinator_validator"
+	AGENT_PORT=8188
+	AGENT_PORT_RANGE=8180-8190
+	docker build -q -t "$AGENT" -f ../docker/Dockerfile_coordinator_validator.demo --build-arg data_file="$AGENT" --build-arg hospital_name="Researcher With Validation Data" .. || exit 1
+
 else
 	echo "Please specify which agent you want to run. Choose from 'coordinator', 'hospital1', 'hospital2', 'hospital3', 'nhsheadoffice' or 'regulator'."
 	exit 1
