@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 from uuid import uuid4
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa
 
-from data.coordinator_validate import coordinator_validate
+from data.validate_model import validate_model
 from data.generate_model import generate_model
 
 
@@ -229,7 +229,6 @@ class CoordinatorAgent(DemoAgent):
         cwd = os.getcwd()
 
         if message["connection_id"] == self.trusted_connection_ids[self.current_learner_index]:
-            self.log("Message from learner\n\n", message["content"])
             self.current_learner_index += 1
 
             if self.current_learner_index != len(self.trusted_connection_ids):
@@ -245,6 +244,7 @@ class CoordinatorAgent(DemoAgent):
                 # msg = await prompt("Continue Learning? Y/N ")
                 next_learner_connection_id = self.trusted_connection_ids[self.current_learner_index]
                 self.log("Continue Learning", next_learner_connection_id)
+                await validate_model()
                 await self.admin_POST(
                     f"/connections/{next_learner_connection_id}/send-message",
                     {"content": message["content"]}
@@ -261,8 +261,7 @@ class CoordinatorAgent(DemoAgent):
                 except Exception as e:
                     self.log("Error writing file", e)
                     return
-                self.learning_complete.done()
-                self.learning_complete.result(True)
+                self.learning_complete.set_result(True)
 
         else:
             self.log("Basic message")
@@ -419,19 +418,19 @@ async def main(start_port: int, show_timing: bool = False):
                 # f = open(agent.current_model_file, "rb")
                 if successfully_generated:
                     log_msg("MODEL CREATED AND SAVED SUCCESSFULLY")
+                    f = open(agent.current_model_file, "rb")
+                    log_msg("MODEL OPENED FOR TRANSPORT")
+
+                    contents = f.read()
+                    f.close()
+                    await agent.admin_POST(
+                        f"/connections/{agent.trusted_connection_ids[0]}/send-message",
+                        {"content": contents.hex()}
+                    )
+                    await agent.learning_complete
                 else:
                     log_msg("THERE  WAS A PROBLEM WITH THE MODEL CREATION")
 
-                f = open(agent.current_model_file, "rb")
-                log_msg("MODEL OPENED FOR TRANSPORT")
-
-                contents = f.read()
-                f.close()
-                await agent.admin_POST(
-                    f"/connections/{agent.trusted_connection_ids[0]}/send-message"
-                    {"content": contents.hex()}
-                )
-                await agent.learning_complete
             elif option == "6":
                 # handle new invitation
                 log_status("Reset trusted connection list")

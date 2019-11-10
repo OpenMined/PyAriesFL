@@ -23,7 +23,7 @@ ADD README.md ./
 ADD scripts ./scripts
 ADD setup.py ./
 ADD data/"$data_file".csv ./data/data.csv
-ADD data/coordinator_validate.py ./data/coordinator_validate.py
+ADD data/validate_model.py ./data/validate_model.py
 ADD data/generate_model.py ./data/generate_model.py
 ADD demo/sovrin-genesis.txt ./sovrin-genesis.txt
 

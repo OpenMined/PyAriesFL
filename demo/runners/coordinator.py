@@ -255,7 +255,7 @@ class CoordinatorAgent(DemoAgent):
                     f.close()
                 except Exception as e:
                     self.log("Error writing file", e)
-                    return
+                    return  
                 self.learning_complete.set_result(True)
 
         else:

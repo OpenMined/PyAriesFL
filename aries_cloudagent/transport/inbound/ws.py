@@ -101,7 +101,6 @@ class WsTransport(BaseInboundTransport):
 
         # Listen for incoming messages
         async for msg in ws:
-            self.logger.info(f"Received message: {msg.data}")
             if msg.type in (WSMsgType.TEXT, WSMsgType.BINARY):
                 try:
                     # Route message and provide connection instance as means to respond

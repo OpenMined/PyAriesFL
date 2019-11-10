@@ -27,7 +27,7 @@ from demo.runners.support.utils import log_msg
 
 
 
-async def hospital_learn():
+async def validate_model():
     log_msg("COORDINATOR IS CLEANING THE VALIDATION SET")
 
     #Read in Data
@@ -36,9 +36,6 @@ async def hospital_learn():
     log_msg("COORDINATOR DATA", train_df)
 
     ########## START DATA CLEANING ###############
-
-
-    #dealing with missing data
     #Let’s get rid of the variables "Timestamp",“comments”, “state” just to make our lives easier.
     train_df = train_df.drop(['comments'], axis= 1)
     train_df = train_df.drop(['state'], axis= 1)
@@ -157,43 +154,42 @@ async def hospital_learn():
 
     ########## END DATA CLEANING ###############
 
-model_dir = os.getcwd() + "/../model/model.pt"
+    model_dir = os.getcwd() + "/model/model.pt"
 
-log_msg(model_dir)
-# Pull in model
+    log_msg(model_dir)
+    # Pull in model
 
-model = torch.load(model_dir)
+    model = torch.load(model_dir)
 
-log_msg("HOSPITAL MODEL LOADED")
-log_msg("\nPRINTING PARAMETERS:\n\n")
-
-
-log_msg(model)
-
-log_msg('\n')
-
-for name, param in model.named_parameters():
-    if param.requires_grad:
-        log_msg(name, param.data)
-
-# Validation Logic
-log_msg("\n\n\nHOSPITAL IS VALIDATING")
-
-#BINARIZE PREDICTION FOR CONFUSION MATRIX
-
-pred = []
-
-for data in  model(x_test_data):
-    if data > .5:
-        pred.append(1)
-    else:
-        pred.append(1)
+    log_msg("HOSPITAL MODEL LOADED")
+    log_msg("\nPRINTING PARAMETERS:\n\n")
 
 
-confusion = metrics.confusion_matrix(pred, y_test_data)
+    log_msg(model)
 
-log_msg("Model loss on validation set: ", (model(x_test_data) - y_test_data).sum())
-log_msg("Confusion Matrix:\n                Actual_True, Actual_False \n Predicted_True    ",confusion[1][1],"   |     ",confusion[1][0],"    \n Predicted_False   ",confusion[0][0],"     |      ",confusion[0][1],"    \n")
+    log_msg('\n')
 
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            log_msg(name, param.data)
+
+    # Validation Logic
+    log_msg("\n\n\nHOSPITAL IS VALIDATING")
+
+    #BINARIZE PREDICTION FOR CONFUSION MATRIX
+
+    pred = []
+
+    for data in  model(x_test_data):
+        if data > .5:
+            pred.append(1)
+        else:
+            pred.append(1)
+
+
+    confusion = metrics.confusion_matrix(pred, y_test_data)
+
+    log_msg("Model loss on validation set: ", (model(x_test_data) - y_test_data).sum())
+    log_msg("Confusion Matrix:\n                Actual_True, Actual_False \n Predicted_True    ",confusion[1][1],"   |     ",confusion[1][0],"    \n Predicted_False   ",confusion[0][0],"     |      ",confusion[0][1],"    \n")
 
     return True

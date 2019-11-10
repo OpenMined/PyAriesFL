@@ -23,7 +23,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from demo.runners.support.utils import log_msg
 
-async def set_up_model():
+async def generate_model():
     log_msg("COORDINATOR IS GENERATING THE INITIAL MODEL")
 
     # One Model
