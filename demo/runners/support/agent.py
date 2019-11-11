@@ -331,7 +331,6 @@ class DemoAgent:
 
     async def admin_request(self, method, path, data=None, text=False, params=None):
         params = {k: v for (k, v) in (params or {}).items() if v is not None}
-        self.log("Request", self.admin_url + path, data)
         async with self.client_session.request(
             method, self.admin_url + path, json=data, params=params
         ) as resp:
