@@ -184,7 +184,7 @@ async def validate_model():
         if data > .5:
             pred.append(1)
         else:
-            pred.append(1)
+            pred.append(0)
 
 
     confusion = metrics.confusion_matrix(pred, y_test_data)
