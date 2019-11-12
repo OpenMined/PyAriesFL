@@ -40,6 +40,7 @@ class NhsheadofficeAgent(DemoAgent):
             **kwargs,
         )
         self.current_hospital_name = None
+        self.hospital_credential_def_id = None
         self.active_connection_id = None
         self.connection_list = []
         self._connection_ready = asyncio.Future()
@@ -121,10 +122,28 @@ class NhsheadofficeAgent(DemoAgent):
                 self.log(proof["presentation"]["requested_proof"]["self_attested_attrs"]["0_name_uuid"])
 
                 self.current_hospital_name = proof["presentation"]["requested_proof"]["self_attested_attrs"]["0_name_uuid"]
-    #
-    # async def handle_basicmessages(self, message):
-    #     self.log("Received message:", message["content"])
 
+                today = date.today()
+                # TODO define attributes to send for credential
+                self.cred_attrs[self.hospital_credential_def_id] = {
+                    "hospital_name": self.current_hospital_name,
+                    "date": str(today),
+                }
+
+                cred_preview = {
+                    "@type": CRED_PREVIEW_TYPE,
+                    "attributes": [
+                        {"name": n, "value": v}
+                        for (n, v) in self.cred_attrs[self.hospital_credential_def_id].items()
+                    ],
+                }
+                offer_request = {
+                    "connection_id": self.active_connection_id,
+                    "credential_definition_id": self.hospital_credential_def_id,
+                    "comment": f"Offer on cred def id {self.hospital_credential_def_id}",
+                    "credential_preview": cred_preview,
+                }
+                await self.admin_POST("/issue-credential/send-offer", offer_request)
 
 async def main(start_port: int, show_timing: bool = False):
 
@@ -168,6 +187,7 @@ async def main(start_port: int, show_timing: bool = False):
                 "Verified Hospital schema", version, ["date", "hospital_name"]
             )
 
+        agent.hospital_credential_def_id = credential_definition_id
         # TODO add an additional credential for Student ID
 
         with log_timer("Generate invitation duration:"):
@@ -188,9 +208,8 @@ async def main(start_port: int, show_timing: bool = False):
         await agent.detect_connection()
 
         async for option in prompt_loop(
-            "(1) Request Hospital name\n" +
-            "(2) Issue Verified Hospital Credential\n" +
-            "(3) Create a New Invitation\n" +
+            "(1) Issue Verified Hospital Credential\n" +
+            "(2) Create a New Invitation\n" +
             "(X) Exit?\n" +
             "[1/2/3/X] "
         ):
@@ -198,7 +217,7 @@ async def main(start_port: int, show_timing: bool = False):
                 break
 
             elif option == "1":
-                log_status("#20 Request Self Attested Hospital Name")
+                log_status("#13 Issue Verified Hospital credential offer to X")
                 req_attrs = [
                     {"name": "name"}
                 ]
@@ -220,35 +239,34 @@ async def main(start_port: int, show_timing: bool = False):
                     "/present-proof/send-request", proof_request_web_request
                 )
 
+            # elif option == "1":
+            #     if agent.current_hospital_name:
+            #
+            #         today = date.today()
+            #         # TODO define attributes to send for credential
+            #         agent.cred_attrs[credential_definition_id] = {
+            #             "hospital_name": agent.current_hospital_name,
+            #             "date": str(today),
+            #         }
+            #
+            #         cred_preview = {
+            #             "@type": CRED_PREVIEW_TYPE,
+            #             "attributes": [
+            #                 {"name": n, "value": v}
+            #                 for (n, v) in agent.cred_attrs[credential_definition_id].items()
+            #             ],
+            #         }
+            #         offer_request = {
+            #             "connection_id": agent.active_connection_id,
+            #             "credential_definition_id": credential_definition_id,
+            #             "comment": f"Offer on cred def id {credential_definition_id}",
+            #             "credential_preview": cred_preview,
+            #         }
+            #         await agent.admin_POST("/issue-credential/send-offer", offer_request)
+            #     else:
+            #         log_msg("Unable to issue Hospital Credential. Must first request the hospitals name")
+
             elif option == "2":
-                log_status("#13 Issue Verified Hospital credential offer to X")
-                if agent.current_hospital_name:
-
-                    today = date.today()
-                    # TODO define attributes to send for credential
-                    agent.cred_attrs[credential_definition_id] = {
-                        "hospital_name": agent.current_hospital_name,
-                        "date": str(today),
-                    }
-
-                    cred_preview = {
-                        "@type": CRED_PREVIEW_TYPE,
-                        "attributes": [
-                            {"name": n, "value": v}
-                            for (n, v) in agent.cred_attrs[credential_definition_id].items()
-                        ],
-                    }
-                    offer_request = {
-                        "connection_id": agent.active_connection_id,
-                        "credential_definition_id": credential_definition_id,
-                        "comment": f"Offer on cred def id {credential_definition_id}",
-                        "credential_preview": cred_preview,
-                    }
-                    await agent.admin_POST("/issue-credential/send-offer", offer_request)
-                else:
-                    log_msg("Unable to issue Hospital Credential. Must first request the hospitals name")
-
-            elif option == "3":
                 # handle new invitation
                 with log_timer("Generate invitation duration:"):
                     # Generate an invitation
