@@ -27,7 +27,7 @@ from demo.runners.support.utils import log_msg
 
 
 
-async def validate_model():
+async def validate_model(model_path):
     log_msg("COORDINATOR IS CLEANING THE VALIDATION SET")
 
     #Read in Data
@@ -154,12 +154,11 @@ async def validate_model():
 
     ########## END DATA CLEANING ###############
 
-    model_dir = os.getcwd() + "/model/model.pt"
 
-    log_msg(model_dir)
+    log_msg(model_path)
     # Pull in model
 
-    model = torch.load(model_dir)
+    model = torch.load(model_path)
 
     log_msg("HOSPITAL MODEL LOADED")
     log_msg("\nPRINTING PARAMETERS:\n\n")

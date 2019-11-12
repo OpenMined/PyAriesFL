@@ -188,7 +188,11 @@ async def main(start_port: int, show_timing: bool = False):
         await agent.detect_connection()
 
         async for option in prompt_loop(
-            "(1) Request Hospital name, (2) Issue Verified Hospital Credential, (3) Create a New Invitation, (X) Exit? [1/2/X] "
+            "(1) Request Hospital name\n" +
+            "(2) Issue Verified Hospital Credential\n" +
+            "(3) Create a New Invitation\n" +
+            "(X) Exit?\n" +
+            "[1/2/3/X] "
         ):
             if option is None or option in "xX":
                 break
@@ -216,39 +220,34 @@ async def main(start_port: int, show_timing: bool = False):
                     "/present-proof/send-request", proof_request_web_request
                 )
 
-
             elif option == "2":
                 log_status("#13 Issue Verified Hospital credential offer to X")
+                if agent.current_hospital_name:
 
-                today = date.today()
-                # TODO define attributes to send for credential
-                agent.cred_attrs[credential_definition_id] = {
-                    "hospital_name": agent.current_hospital_name,
-                    "date": str(today),
-                    # "degree": "Health",
-                    # "age": "24",
-                }
+                    today = date.today()
+                    # TODO define attributes to send for credential
+                    agent.cred_attrs[credential_definition_id] = {
+                        "hospital_name": agent.current_hospital_name,
+                        "date": str(today),
+                    }
 
-                cred_preview = {
-                    "@type": CRED_PREVIEW_TYPE,
-                    "attributes": [
-                        {"name": n, "value": v}
-                        for (n, v) in agent.cred_attrs[credential_definition_id].items()
-                    ],
-                }
-                offer_request = {
-                    "connection_id": agent.active_connection_id,
-                    "credential_definition_id": credential_definition_id,
-                    "comment": f"Offer on cred def id {credential_definition_id}",
-                    "credential_preview": cred_preview,
-                }
-                await agent.admin_POST("/issue-credential/send-offer", offer_request)
+                    cred_preview = {
+                        "@type": CRED_PREVIEW_TYPE,
+                        "attributes": [
+                            {"name": n, "value": v}
+                            for (n, v) in agent.cred_attrs[credential_definition_id].items()
+                        ],
+                    }
+                    offer_request = {
+                        "connection_id": agent.active_connection_id,
+                        "credential_definition_id": credential_definition_id,
+                        "comment": f"Offer on cred def id {credential_definition_id}",
+                        "credential_preview": cred_preview,
+                    }
+                    await agent.admin_POST("/issue-credential/send-offer", offer_request)
+                else:
+                    log_msg("Unable to issue Hospital Credential. Must first request the hospitals name")
 
-            # elif option == "3":
-            #     msg = await prompt("Enter message: ")
-            #     await agent.admin_POST(
-            #         f"/connections/{agent.active_connection_id}/send-message", {"content": msg}
-            #     )
             elif option == "3":
                 # handle new invitation
                 with log_timer("Generate invitation duration:"):

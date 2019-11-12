@@ -177,7 +177,7 @@ async def main(start_port: int, show_timing: bool = False):
         await agent.detect_connection()
 
         async for option in prompt_loop(
-            "(1) Issue Credential, (2) Create a New Invitation, (X) Exit? [1/2/X] "
+            "(1) Issue Credential \n(2) Create a New Invitation \n(X) Exit? \n[1/2/X] "
         ):
             if option is None or option in "xX":
                 break
@@ -188,10 +188,8 @@ async def main(start_port: int, show_timing: bool = False):
                 today = date.today()
                 # TODO define attributes to send for credential
                 agent.cred_attrs[credential_definition_id] = {
-                    # "name": str(credential_definition_id),
                     "date": str(today),
                     "institution": "Edinburgh Napier University",
-                    # "age": "24",
                 }
 
                 cred_preview = {

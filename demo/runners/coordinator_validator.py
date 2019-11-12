@@ -233,8 +233,9 @@ class CoordinatorAgent(DemoAgent):
 
             if self.current_learner_index != len(self.trusted_connection_ids):
                 self.log("Still learning")
+                model_path = cwd + "/model/part_trained_" + str(self.current_learner_index) + ".pt"
                 try:
-                    f = open(cwd + "/model/part_trained_" + str(self.current_learner_index) + ".pt", "wb+")
+                    f = open(model_path, "wb+")
                     byte_message = bytes.fromhex(message["content"])
                     f.write(byte_message)
                     f.close()
@@ -244,20 +245,22 @@ class CoordinatorAgent(DemoAgent):
                 # msg = await prompt("Continue Learning? Y/N ")
                 next_learner_connection_id = self.trusted_connection_ids[self.current_learner_index]
                 self.log("Continue Learning", next_learner_connection_id)
-                await validate_model()
+                await validate_model(model_path)
                 await self.admin_POST(
                     f"/connections/{next_learner_connection_id}/send-message",
                     {"content": message["content"]}
                 )
             else:
                 self.log("Learning complete")
+                model_path = cwd + "/model/trained_model.pt"
                 try:
-                    f = open(cwd + "/model/trained_model.pt", "wb+")
+                    f = open(model_path, "wb+")
                     # self.log(bytes.fromhex(message["content"]))
                     byte_message = bytes.fromhex(message["content"])
 
                     f.write(byte_message)
                     f.close()
+                    await validate_model(model_path)
                 except Exception as e:
                     self.log("Error writing file", e)
                     return
