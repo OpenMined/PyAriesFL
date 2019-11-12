@@ -310,22 +310,15 @@ async def main(start_port: int, show_timing: bool = False):
         await input_invitation(agent)
 
         async for option in prompt_loop(
-            "(1) Send Message (2) Input New Invitation (3) Request Proof of Certified Researcher (X) Exit? [1/2/3/X]: "
+            "(1) Request Proof of Certified Researcher \n" +
+            "(2) Input New Invitation \n" +
+            "(3) List trusted researcher     connections \n" +
+            "(X) Exit? \n" +
+            "[1/2/3/X]: "
         ):
             if option is None or option in "xX":
                 break
             elif option == "1":
-                msg = await prompt("Enter message: ")
-                if msg:
-                    await agent.admin_POST(
-                        f"/connections/{agent.connection_id}/send-message",
-                        {"content": msg},
-                    )
-            elif option == "2":
-                # handle new invitation
-                log_status("Input new invitation details")
-                await input_invitation(agent)
-            elif option == "3":
                 log_status("#20 Request proof of Research Certification")
                 req_attrs = [
                     {"name": "date", "restrictions": [{"issuer_did": agent.regulator_did}]},
@@ -349,6 +342,15 @@ async def main(start_port: int, show_timing: bool = False):
                 await agent.admin_POST(
                     "/present-proof/send-request", proof_request_web_request
                 )
+
+            elif option == "2":
+                # handle new invitation
+                log_status("Input new invitation details")
+                await input_invitation(agent)
+            elif option == "3":
+                log_status("Trusted Research Connections")
+                log_msg(agent.trusted_researcher_connection_ids)
+
         if show_timing:
             timing = await agent.fetch_timing()
             if timing:
