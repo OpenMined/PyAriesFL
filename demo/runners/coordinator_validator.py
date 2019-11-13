@@ -417,6 +417,9 @@ async def main(start_port: int, show_timing: bool = False):
                 # Some sort of await until coordinator recieved message back
 
                 successfully_generated = await generate_model()
+                successfully_validated = await validate_model(os.getcwd() + "/model/model.pt")
+
+
 
                 # f = open(agent.current_model_file, "rb")
                 if successfully_generated:
