@@ -1,4 +1,6 @@
-# Distributed Deep-learning DID-acts
+# Aries Federated Learning Demo
+
+### Work initated as part of the Diffusion 2019 hackathon
 
 This repo has been forked from Hyperledger Aries Cloud agent [link](https://github.com/hyperledger/aries-cloudagent-python) provided by British Columbia Government.
 
