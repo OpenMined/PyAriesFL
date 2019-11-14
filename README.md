@@ -1,6 +1,4 @@
-# Aries Federated Learning Demo
-
-### Work initated as part of the Diffusion 2019 hackathon
+# Distributed Deep-learning DID-acts
 
 This repo has been forked from Hyperledger Aries Cloud agent [link](https://github.com/hyperledger/aries-cloudagent-python) provided by British Columbia Government.
 
@@ -64,18 +62,18 @@ cd demo
 
 11) Create New Invitation in the coordinator for the hospital.
 
-12) Input new connection into the hospital terminal 
+12) Input new connection into the hospital terminal
 
 13) Coordinator request proof connection is from a valid hospital. If proof is valid, the coordinator adds this hospital to the list of the trusted connections.
 
 14) Hospital to request proof that the coordinator connection is from a certified research. If so add to list of trusted connections.
 
 15) Either add another trusted connection between a new hospital and current researcher by repeating steps 11 - 14
- 
+
 or..
 
 16) In the coordinator terminal initiate training process which loops through all trusted hospital connections in turn, sending a message containing the model. The hospital checks if the message is from a trusted research, if so they initiate the training process using their private date. Once complete the trained model is sent back to the coordinator who validates the model and forwards it onto the next trusted connection.
- 
+
 
 ![Researcher coordinates federated learning](./figures/VanillaFL.png)
 
@@ -83,6 +81,6 @@ or..
 
 # Created by
 
-    Will Abramson
-    Adam James Hall
-    Pavlos Papadopoulos
+    Will Abramson (wip-abramson)
+    Adam James Hall (H4LL)
+    Pavlos Papadopoulos (pavlos-p)
