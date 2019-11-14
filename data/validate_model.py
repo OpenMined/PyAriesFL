@@ -183,12 +183,12 @@ async def validate_model(model_path):
         if data > .5:
             pred.append(1)
         else:
-            pred.append(1)
+            pred.append(0)
 
 
     confusion = metrics.confusion_matrix(pred, y_test_data)
 
     log_msg("Model loss on validation set: ", (model(x_test_data) - y_test_data).sum())
-    log_msg("Confusion Matrix:\n                Actual_True, Actual_False \n Predicted_True    ",confusion[1][1],"   |     ",confusion[1][0],"    \n Predicted_False   ",confusion[0][0],"     |      ",confusion[0][1],"    \n")
+    log_msg("Confusion Matrix:\n                Actual_True, Actual_False \n Predicted_True    ",confusion[1][1],"   |     ",confusion[1][0],"    \n Predicted_False   ",confusion[0][1],"     |      ",confusion[0][0],"    \n")
 
     return True

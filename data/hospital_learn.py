@@ -141,25 +141,17 @@ async def hospital_learn():
     y = train_df.treatment
 
     # split X and y into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30, random_state=0)
+    X_train, y_train = X, y
 
     # Transform pandas dataframe to torch tensor for DL
 
     x_train_data = torch.from_numpy(X_train.values)
     x_train_data = x_train_data.float()
 
-    x_test_data = torch.from_numpy(X_test.values)
-    x_test_data = x_test_data.float()
-
     y_train_data = []
     for data in y_train.values:
         y_train_data.append([data])
     y_train_data = torch.tensor(y_train_data).float()
-
-    y_test_data = []
-    for data in y_test.values:
-        y_test_data.append([data])
-    y_test_data = torch.tensor(y_test_data).float()
 
 
     log_msg("HOSPITAL DATA CLEAN")
@@ -206,8 +198,6 @@ async def hospital_learn():
         # 6) log_msg our progress
         if (iter % 5000 == 0):
             log_msg("loss at epoch ", iter, ": ", loss.data)
-
-    log_msg("Loss of model when prediciting on validation set: ", (model(x_test_data) - y_test_data).sum())
 
     torch.save(model, "model/trained_model.pt")
 
