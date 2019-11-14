@@ -10,6 +10,11 @@ from urllib.parse import urlparse
 from uuid import uuid4
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa
 
+from data.validate_model import validate_model
+from data.generate_model import generate_model
+
+
+
 from runners.support.agent import DemoAgent, default_genesis_txns
 from runners.support.utils import (
     log_json,
@@ -53,7 +58,7 @@ class CoordinatorAgent(DemoAgent):
         self.cred_attrs = {}
         self.learning_complete = asyncio.Future()
         self.current_learner_index = 0
-        self.current_model_file = os.getcwd() + "/model/untrained_model.pt"
+        self.current_model_file = os.getcwd() + "/model/model.pt"
 
 
     async def detect_connection(self):
@@ -144,23 +149,21 @@ class CoordinatorAgent(DemoAgent):
                 f"/present-proof/records/{presentation_exchange_id}/"
                 "verify-presentation"
             )
-            self.log("Proof =", proof["verified"])
             if proof["verified"]:
                 hospital = {"connection_id" : message["connection_id"]}
-                self.log(hospital)
                 for attribute in presentation_request['requested_attributes']:
-                    self.log(attribute)
                     attribute_name = presentation_request['requested_attributes'][attribute]["name"]
-                    self.log("Attribute name: ",  presentation_request['requested_attributes'][attribute]["name"])
-                    # self.log(attribute.name)
-                    self.log("Attribte value", proof["presentation"]["requested_proof"]["revealed_attrs"][attribute]['raw'])
                     hospital[attribute_name] = proof["presentation"]["requested_proof"]["revealed_attrs"][attribute]['raw']
-                self.log(hospital)
+
 
                 # self.log(proof)
                 # self.log(presentation_request)
-                self.trusted_connection_ids.append(message["connection_id"])
-                self.trusted_hospitals.append(hospital)
+                if message["connection_id"] not in self.trusted_connection_ids:
+                    self.log("Hospital " + hospital[attribute_name] + "is now trusted")
+                    self.trusted_connection_ids.append(message["connection_id"])
+                    self.trusted_hospitals.append(hospital)
+                else:
+                    self.log("Already estabished trusted connection with ", hospital[attribute_name])
         elif state == "request_received":
             log_status(
                 "#24 Query for credentials in the wallet that satisfy the proof request"
@@ -224,13 +227,13 @@ class CoordinatorAgent(DemoAgent):
         cwd = os.getcwd()
 
         if message["connection_id"] == self.trusted_connection_ids[self.current_learner_index]:
-            self.log("Message from learner\n\n", message["content"])
             self.current_learner_index += 1
 
             if self.current_learner_index != len(self.trusted_connection_ids):
                 self.log("Still learning")
+                self.current_model_file = cwd + "/model/part_trained_" + str(self.current_learner_index) + ".pt"
                 try:
-                    f = open(cwd + "/model/part_trained_" + str(self.current_learner_index) + ".pt", "wb+")
+                    f = open(self.current_model_file, "wb+")
                     byte_message = bytes.fromhex(message["content"])
                     f.write(byte_message)
                     f.close()
@@ -240,33 +243,30 @@ class CoordinatorAgent(DemoAgent):
                 # msg = await prompt("Continue Learning? Y/N ")
                 next_learner_connection_id = self.trusted_connection_ids[self.current_learner_index]
                 self.log("Continue Learning", next_learner_connection_id)
+                await validate_model(self.current_model_file)
                 await self.admin_POST(
                     f"/connections/{next_learner_connection_id}/send-message",
                     {"content": message["content"]}
                 )
             else:
                 self.log("Learning complete")
+                self.current_model_file = cwd + "/model/trained_model.pt"
                 try:
-                    f = open(cwd + "/model/trained_model.pt", "wb+")
+                    f = open(self.current_model_file, "wb+")
                     # self.log(bytes.fromhex(message["content"]))
                     byte_message = bytes.fromhex(message["content"])
 
                     f.write(byte_message)
                     f.close()
+                    await validate_model(self.current_model_file)
                 except Exception as e:
                     self.log("Error writing file", e)
-                    return  
+                    return
                 self.learning_complete.set_result(True)
 
         else:
-            self.log("Basic message")
-            self.log("Received message:", message["content"])
-
-
-
-
-
-
+            self.log("Expecting Message from the current learner hospital:", self.trusted_connection_ids[self.current_learner_index])
+            self.log("Received message:", message["content"], message["connection_id"])
 
 
 
@@ -330,9 +330,9 @@ async def main(start_port: int, show_timing: bool = False):
         # await agent.detect_connection()
 
         async for option in prompt_loop(
-            "(1) Send Proof Request \n"
-            + "(2) Create New Invitation \n"
-            + "(3) Input New Invitation Details \n"
+            "(1) Request proof of Verified Hospital \n"
+            + "(2) Input New Invitation \n"
+            + "(3) Create New Invitation \n"
             + "(4) List trusted connections \n"
             + "(5) Initiate Learning \n"
             + "(6) Reset trusted connections \n"
@@ -375,6 +375,10 @@ async def main(start_port: int, show_timing: bool = False):
                 )
             elif option == "2":
                 # handle new invitation
+                log_status("Input new invitation details")
+                await input_invitation(agent)
+            elif option == "3":
+                # handle new invitation
                 with log_timer("Generate invitation duration:"):
                     # Generate an invitation
                     log_status(
@@ -393,32 +397,38 @@ async def main(start_port: int, show_timing: bool = False):
 
                 log_msg("Waiting for connection...")
                 await agent.detect_connection()
-            elif option == "3":
-                # handle new invitation
-                log_status("Input new invitation details")
-                await input_invitation(agent)
             elif option == "4":
                 # handle new invitation
                 log_status("List of Trusted Connections")
                 log_msg(agent.trusted_connection_ids)
-                log_msg(agent.trusted_hospitals)
+                # log_msg(agent.trusted_hospitals)
             elif option == "5":
                 # handle new invitation
                 log_status("Initiate Learning")
                 # TODO Need to get the updated file somehow
                 # Some sort of await until coordinator recieved message back
 
-                f = open(agent.current_model_file, "rb")
-                log_msg("open file")
+                successfully_generated = await generate_model()
+                successfully_validated = await validate_model(agent.current_model_file)
 
-                contents = f.read()
-                f.close()
 
-                await agent.admin_POST(
-                    f"/connections/{agent.trusted_connection_ids[0]}/send-message",
-                    {"content": contents.hex()}
-                )
-                await agent.learning_complete
+
+                # f = open(agent.current_model_file, "rb")
+                if successfully_generated:
+                    log_msg("MODEL CREATED AND SAVED SUCCESSFULLY")
+                    f = open(agent.current_model_file, "rb")
+                    log_msg("MODEL OPENED FOR TRANSPORT")
+
+                    contents = f.read()
+                    f.close()
+                    await agent.admin_POST(
+                        f"/connections/{agent.trusted_connection_ids[0]}/send-message",
+                        {"content": contents.hex()}
+                    )
+                    await agent.learning_complete
+                else:
+                    log_msg("THERE  WAS A PROBLEM WITH THE MODEL CREATION")
+
             elif option == "6":
                 # handle new invitation
                 log_status("Reset trusted connection list")
@@ -509,5 +519,3 @@ if __name__ == "__main__":
         asyncio.get_event_loop().run_until_complete(main(args.port, args.timing))
     except KeyboardInterrupt:
         os._exit(1)
-
-

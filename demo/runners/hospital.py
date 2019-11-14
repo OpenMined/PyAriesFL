@@ -197,7 +197,8 @@ class Hospital1Agent(DemoAgent):
             )
             if proof["verified"]:
                 self.log("Researcher is verified")
-                self.trusted_researcher_connection_ids.append(message["connection_id"])
+                if message["connection_id"] not in self.trusted_researcher_connection_ids:
+                    self.trusted_researcher_connection_ids.append(message["connection_id"])
 
 
     async def handle_basicmessages(self, message):
@@ -312,7 +313,7 @@ async def main(start_port: int, show_timing: bool = False):
         async for option in prompt_loop(
             "(1) Request Proof of Certified Researcher \n" +
             "(2) Input New Invitation \n" +
-            "(3) List trusted researcher     connections \n" +
+            "(3) List trusted researcher connections \n" +
             "(X) Exit? \n" +
             "[1/2/3/X]: "
         ):

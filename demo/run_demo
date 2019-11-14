@@ -9,11 +9,11 @@ AGENT_NAME="$2"
 shift
 
 if [ "$AGENT" = "coordinator" ]; then
-	AGENT_MODULE="coordinator"
+	AGENT_MODULE="coordinator_validator"
 	AGENT_PORT=8050
 	AGENT_PORT_RANGE=8050-8058
-	echo "Preparing agent image..."
-	docker build -q -t "$AGENT" -f ../docker/Dockerfile_coordinator.demo .. || exit 1
+	docker build -q -t "$AGENT" -f ../docker/Dockerfile_coordinator.demo --build-arg data_file="coordinator_validation_data" --build-arg hospital_name="Researcher With Validation Data" .. || exit 1
+
 elif [ "$AGENT" = "hospital1" ]; then
 	AGENT_MODULE="hospital"
 	AGENT_PORT=8070
@@ -55,12 +55,6 @@ elif [ "$AGENT" = "hospital1_web" ]; then
 	AGENT_PORT=8160
 	AGENT_PORT_RANGE=8160-8170
 	docker build -q -t "$AGENT" -f ../docker/Dockerfile.demo .. || exit 1
-elif [ "$AGENT" = "coordinator_validator" ]; then
-	AGENT_MODULE="coordinator_validator"
-	AGENT_PORT=8188
-	AGENT_PORT_RANGE=8180-8190
-	docker build -q -t "$AGENT" -f ../docker/Dockerfile_coordinator_validator.demo --build-arg data_file="coordinator_validation_data" --build-arg hospital_name="Researcher With Validation Data" .. || exit 1
-
 else
 	echo "Please specify which agent you want to run. Choose from 'coordinator', 'hospital1', 'hospital2', 'hospital3', 'nhsheadoffice' or 'regulator'."
 	exit 1

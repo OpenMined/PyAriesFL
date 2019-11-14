@@ -24,65 +24,64 @@ cd demo
 
 ![Trust Issues to Hospital](./figures/Trust_to_Hospital.png)
 
-1) Start the NHS Trusted agent.
-```
-./run_demo nhsheadoffice
-```
+1. Start the NHS Trusted agent.
+    ```
+    ./run_demo nhsheadoffice
+    ```
 2) Start each of the hospitals in separate terminals.
-```
-./run_demo hospital1(2,3)
-```
-3) Copy NHS's invitation URL into the hospitals terminal to establish pairwise DID connection.
+    ```
+    ./run_demo hospital1(2,3)
+    ```
+3) Copy NHS's invitation URL into the hospitals terminal to initiate DIDExchange and establish pairwise DID connection.
 
-4) Trust requests proof of hospitals name (Self attested)
+4) Issue verified hospital credential to the Hospital. This first requests a self attested proof of hospital name from the hospital then issues this name in a credential.
 
-5) NHS Trust issue verified hospital credential to the Hospital.
-
-6) Repeat for each hospital
+5) Create new invitation from the NHSTrust and repeat steps 3 and 4 for each hospital
 
 ## The Researcher gets accredited by the regulatory authority.
 
 ![Researcher accreditation](./figures/regulator_to_coordinator.png)
 
-7) Start the Coordinator.
+6) Start the Coordinator.
 ```
 ./run_demo coordinator
 ```
 
-8) Start the regulator.
+7) Start the regulator.
 
 ```
 ./run_demo regulator
 ```
 
-9) Follow the on-screen menu on the coordinator (3) to input connection url from the regulator.
+8) Enter command to allow coordinator to accept new invitation
 
-10) Follow the on-screen menu to Issue a credential from the Regulator to the Coordinator.
+9) Copy regulator's invitation URL into coordinator terminal.
+
+10) Issue a credential from the Regulator to the Coordinator.
 
 
 ## The researcher validates the hospital's credential. The hospital validates the researcher's accreditation. The training procedure starts.
 
 ![Researcher and hospital verify respective credentials](./figures/trusted_connection.png)
 
-11) Follow the on-screen menu on the Coordinator (2) to create New Invitation for the hospital.
+11) Create New Invitation in the coordinator for the hospital.
 
-12) Follow the on-screen menu in the hospital terminal to accept the new invitation link from the coordinator, and connect to it.
+12) Input new connection into the hospital terminal 
 
-13) Follow the on-screen menu (1) so the coordinator can check the hospital's credentials. If proof is valid, the coordinator adds this hospital to the list of the trusted connections.
+13) Coordinator request proof connection is from a valid hospital. If proof is valid, the coordinator adds this hospital to the list of the trusted connections.
 
-14) Follow the on-screen menu (3) in the hospital to request proof that the coordinator has been regulated. If so add to list of trusted connection.
+14) Hospital to request proof that the coordinator connection is from a certified research. If so add to list of trusted connections.
 
-15) Either add another trusted connection between a new hospital and current researcher
+15) Either add another trusted connection between a new hospital and current researcher by repeating steps 11 - 14
  
 or..
 
-16) In the coordinator terminal initiate training process by accepting the model from the coordinator, trains the model, and sends back the updated model (updated model parameters) to the coordinator. Afterwards, coordinator sends the new updated model to the next hospital to continue the training until the full training procedure has been completed.
+16) In the coordinator terminal initiate training process which loops through all trusted hospital connections in turn, sending a message containing the model. The hospital checks if the message is from a trusted research, if so they initiate the training process using their private date. Once complete the trained model is sent back to the coordinator who validates the model and forwards it onto the next trusted connection.
+ 
 
 ![Researcher coordinates federated learning](./figures/federated_learning.png)
 
-# The Ledger that has been used:
 
-LEDGER_URL=http://dev.bcovrin.vonx.io ./run_demo $AGENT_NAME
 
 # Created by
 

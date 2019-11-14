@@ -115,21 +115,17 @@ class NhsheadofficeAgent(DemoAgent):
             )
             self.log("Proof =", proof["verified"])
             if proof["verified"]:
-                # self.log(presentation_request["requested_attributes"])
                 self.log(proof)
-
-                # self.log(proof["presentation"]["proof"]["requested_proof"])
                 self.log(proof["presentation"]["requested_proof"]["self_attested_attrs"]["0_name_uuid"])
 
                 self.current_hospital_name = proof["presentation"]["requested_proof"]["self_attested_attrs"]["0_name_uuid"]
-
                 today = date.today()
                 # TODO define attributes to send for credential
                 self.cred_attrs[self.hospital_credential_def_id] = {
                     "hospital_name": self.current_hospital_name,
                     "date": str(today),
                 }
-
+                self.log("Issue", self.cred_attrs)
                 cred_preview = {
                     "@type": CRED_PREVIEW_TYPE,
                     "attributes": [
@@ -137,12 +133,14 @@ class NhsheadofficeAgent(DemoAgent):
                         for (n, v) in self.cred_attrs[self.hospital_credential_def_id].items()
                     ],
                 }
+                self.log("preview", cred_preview)
                 offer_request = {
                     "connection_id": self.active_connection_id,
                     "credential_definition_id": self.hospital_credential_def_id,
                     "comment": f"Offer on cred def id {self.hospital_credential_def_id}",
                     "credential_preview": cred_preview,
                 }
+                self.log("Issue Credential", offer_request)
                 await self.admin_POST("/issue-credential/send-offer", offer_request)
 
 async def main(start_port: int, show_timing: bool = False):
@@ -162,7 +160,6 @@ async def main(start_port: int, show_timing: bool = False):
         await agent.listen_webhooks(start_port + 2)
         # await agent.register_did()
 
-        log_msg("HEAD OFFICE DID: ", agent.did)
 
         with log_timer("Startup duration:"):
             await agent.start_process()
