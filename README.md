@@ -15,7 +15,7 @@ The agents connect, by default, to the BC government development instance of Hyp
 To run the scenario:
 
 ```
-git clone https://github.com/blockpass-identity-lab/diffusion2019.git
+git clone https://github.com/blockpass-identity-lab/aries-fl-demo.git
 
 cd demo
 ```
