@@ -40,8 +40,6 @@ cd demo
 
 ## The Researcher gets accredited by the regulatory authority.
 
-![Researcher accreditation](./figures/regulator_to_coordinator.png)
-
 6) Start the Coordinator.
 ```
 ./run_demo coordinator
@@ -79,7 +77,7 @@ or..
 16) In the coordinator terminal initiate training process which loops through all trusted hospital connections in turn, sending a message containing the model. The hospital checks if the message is from a trusted research, if so they initiate the training process using their private date. Once complete the trained model is sent back to the coordinator who validates the model and forwards it onto the next trusted connection.
  
 
-![Researcher coordinates federated learning](./figures/federated_learning.png)
+![Researcher coordinates federated learning](./figures/VanillaFL.png)
 
 
 
