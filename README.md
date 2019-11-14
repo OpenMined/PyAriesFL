@@ -22,8 +22,6 @@ cd demo
 
 ## Hospital gets verified by the NHS Trust.
 
-![Trust Issues to Hospital](./figures/Trust_to_Hospital.png)
-
 1. Start the NHS Trusted agent.
     ```
     ./run_demo nhsheadoffice
