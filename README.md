@@ -2,7 +2,7 @@
 
 This repo has been forked from Hyperledger Aries Cloud agent [link](https://github.com/hyperledger/aries-cloudagent-python) provided by British Columbia Government.
 
-We have created a set of agents that can be run using docker to experiment with a federated deep learning scenario using didCOMM to pass secure messages between the participants - e.g. the ML model parameters. Furthermore the scenario explores using credentials so that participants can verify that who they are communicating with. In the example this is verifying a hospital is indeed a hospital and a researcher has been accredited by a regulator. However the credentials abnd issuers within this use case could be adapted to any ecosystem.
+We have created a set of agents that can be run using docker to experiment with a federated deep learning scenario using didCOMM to pass secure messages between the participants - e.g. the ML model parameters. Furthermore the scenario explores using credentials so that participants can verify who they are communicating with. In the example this is verifying a hospital is indeed a hospital and a researcher has been accredited by a regulator. However the credentials about issuers within this use case could be adapted to any ecosystem.
 
 The agents connect, by default, to the BC government development instance of Hyperledger Indy ledger [link](http://dev.bcovrin.vonx.io).
 
@@ -66,13 +66,13 @@ cd demo
 
 13) Coordinator request proof connection is from a valid hospital. If proof is valid, the coordinator adds this hospital to the list of the trusted connections.
 
-14) Hospital to request proof that the coordinator connection is from a certified research. If so add to list of trusted connections.
+14) Hospital to request proof that the coordinator connection is from a certified researcher. If so add to list of trusted connections.
 
 15) Either add another trusted connection between a new hospital and current researcher by repeating steps 11 - 14
 
 or..
 
-16) In the coordinator terminal initiate training process which loops through all trusted hospital connections in turn, sending a message containing the model. The hospital checks if the message is from a trusted research, if so they initiate the training process using their private date. Once complete the trained model is sent back to the coordinator who validates the model and forwards it onto the next trusted connection.
+16) In the coordinator terminal initiate training process which loops through all trusted hospital connections in turn, sending a message containing the model. The hospital checks if the message is from a trusted researcher, if so they initiate the training process using their private date. Once complete the trained model is sent back to the coordinator who validates the model and forwards it onto the next trusted connection.
 
 
 ![Researcher coordinates federated learning](./figures/VanillaFL.png)
